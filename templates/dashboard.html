@@ -420,6 +420,19 @@ $(document).ready(function () {
     }
 });
 
+<!--Delete Child Modal    -->
+
+  $('#deleteChildModal').on('show.bs.modal', function (event) {
+  var button = $(event.relatedTarget);
+  var childId = button.data('child-id');
+  var childName = button.data('child-name');
+
+  var modal = $(this);
+  modal.find('.modal-body #childNameToDelete').text(childName);
+  modal.find('.modal-footer #deleteChildForm').attr('action', '{% url "delete_child" 0 %}'.replace('0', childId));
+});
+
+
 </script>
 
 {% endblock %}
