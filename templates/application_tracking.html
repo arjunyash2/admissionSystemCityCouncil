@@ -1,0 +1,31 @@
+<!-- application_tracking.html -->
+{% extends 'base.html' %}
+
+{% block title %}Application Tracking{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Application Tracking for {{ child.name }}</h1>
+    <table class="table table-bordered mt-4">
+        <thead>
+            <tr>
+                <th>Application ID</th>
+                <th>Child</th>
+                <th>Submission Time</th>
+                <th>Download Application</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for application in applications %}
+                <tr>
+                    <td>{{ application.id }}</td>
+                    <td>{{ application.child.name }}</td>
+                    <td>{{ application.applied_on|date:"F j, Y, g:i a" }}</td>
+                    <td><a href="{% url 'download_application' application.id %}" class="btn btn-primary">Download</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
+</div>
+{% endblock %}

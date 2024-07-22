@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f7f7f7;
+        }
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            background-color: #3B82F6;
+            padding-top: 20px;
+            color: #fff;
+            transition: width 0.3s;
+        }
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        .sidebar a {
+            padding: 10px 15px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+            min-width: 20px;
+        }
+        .sidebar.collapsed a {
+            justify-content: center;
+        }
+        .sidebar.collapsed a .menu-text {
+            display: none;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #2563EB;
+            color: #fff;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s;
+        }
+        .content.collapsed {
+            margin-left: 70px;
+        }
+        .navbar {
+            margin-left: 250px;
+            transition: margin-left 0.3s;
+        }
+        .navbar.collapsed {
+            margin-left: 70px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s;
+        }
+        .main-content.collapsed {
+            margin-left: 70px;
+        }
+        .header {
+            background-color: #007bff;
+            padding: 10px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header .right a {
+            color: white;
+            margin-left: 15px;
+        }
+        .dashboard .card {
+            margin-bottom: 15px;
+        }
+        .user-profile {
+            text-align: center;
+            padding: 15px;
+        }
+        .user-profile img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+        }
+        .user-profile h3 {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #fff;
+        }
+        .user-profile p {
+            font-size: 16px;
+            color: #fff;
+        }
+        .sidebar-toggle {
+            position: absolute;
+            top: 20px;
+            left: 220px;
+            cursor: pointer;
+        }
+        .sidebar.collapsed + .sidebar-toggle {
+            left: 40px;
+        }
+        .sidebar a.selected {
+            background-color: #1E3A8A;
+            color: #fff;
+        }
+        .contact-support {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .contact-support p {
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="user-profile">
+            <img src="{% static 'images/user.png' %}" alt="User Image" class="img-fluid rounded-circle">
+            <h3>{{ user.forename }}</h3>
+            <h6> ID: {{user.id}} </h6>
+        </div>
+        <a href="{% url 'dashboard' %}" class="selected"><i class="fas fa-tachometer-alt"></i> <span class="menu-text">Dashboard</span></a>
+        <a href="#"><i class="fas fa-box"></i> <span class="menu-text">Applications</span></a>
+        <a href="#"><i class="fas fa-bullhorn"></i> <span class="menu-text">Profile</span></a>
+        <a href="#"><i class="fas fa-calendar-alt"></i> <span class="menu-text">Track Applications</span></a>
+<!--        <a href="#"><i class="fas fa-hand-holding-usd"></i> <span class="menu-text">Payouts</span></a>-->
+<!--        <a href="#"><i class="fas fa-file-alt"></i> <span class="menu-text">Statements</span></a>-->
+<!--        <a href="#"><i class="fas fa-cog"></i> <span class="menu-text">Settings</span></a>-->
+
+    </div>
+    <div class="sidebar-toggle">
+        <i class="fas fa-bars"></i>
+    </div>
+    <div class="main-content">
+        <div class="header">
+            <span>Dashboard</span>
+            <div class="right">
+                <span>Status: Online</span>
+                <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">Admission Portal</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-bell"></i> Notifications</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-user"></i> {{ user.username }}</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        {% block content %}
+        {% endblock %}
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.sidebar-toggle').click(function() {
+                $('.sidebar').toggleClass('collapsed');
+                $('.main-content').toggleClass('collapsed');
+                $('.navbar').toggleClass('collapsed');
+                $('.content').toggleClass('collapsed');
+            });
+
+            $('.sidebar a').click(function() {
+                $('.sidebar a').removeClass('selected');
+                $(this).addClass('selected');
+            });
+        });
+    </script>
+</body>
+</html>

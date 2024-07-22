@@ -1,0 +1,20 @@
+<!-- application_success.html -->
+{% extends 'base.html' %}
+
+{% block title %}Application Success{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-success mt-4">
+                <h4 class="alert-heading">Success!</h4>
+                <p>Your application for {{ child.name }} has been successfully submitted.</p>
+                <hr>
+                <p class="mb-0">You can track the application status from the dashboard.</p>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-primary mt-4">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

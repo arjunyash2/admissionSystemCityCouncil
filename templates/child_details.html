@@ -1,0 +1,122 @@
+<!-- Part of child_details.html or relevant template -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Child Details - Sheffield School Connect{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+    <div class="account-details">
+        <h2>Welcome, {{ user.username }}</h2>
+        <p>Email: {{ user.email }}</p>
+        <!-- Add more account details here if needed -->
+    </div>
+    <div class="child-details">
+        <h2>Child Details</h2>
+        <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#addChildModal">Add Child</button>
+        {% if children %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Date of Birth</th>
+                        <th>Age</th>
+                        <th>NHS Number</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for child in children %}
+                        <tr>
+                            <td>{{ child.name }}</td>
+                            <td>{{ child.dob }}</td>
+                            <td>{{ child.age }}</td>
+                            <td>{{ child.nhs_number }}</td>
+                            <td>
+                                <button class="btn btn-danger" data-toggle="modal" data-target="#deleteChildModal" data-child-id="{{ child.id }}" data-child-name="{{ child.name }}">Delete</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No child details available. Please add child details.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Child Modal -->
+<div class="modal fade" id="addChildModal" tabindex="-1" aria-labelledby="addChildModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addChildModalLabel">Add Child Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addChildForm" method="post" action="{% url 'accounts:add_child' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dob">Date of Birth</label>
+                        <input type="date" class="form-control" id="dob" name="dob" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nhs_number">NHS Number</label>
+                        <input type="text" class="form-control" id="nhs_number" name="nhs_number" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Child</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Child Modal -->
+<div class="modal fade" id="deleteChildModal" tabindex="-1" aria-labelledby="deleteChildModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteChildModalLabel">Delete Child</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete <span id="childNameToDelete"></span>?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteChildForm" method="post" action="">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+$('#deleteChildModal').on('show.bs.modal', function (event) {
+  var button = $(event.relatedTarget);
+  var childId = button.data('child-id');
+  var childName = button.data('child-name');
+
+  var modal = $(this);
+  modal.find('.modal-body #childNameToDelete').text(childName);
+  modal.find('.modal-footer #deleteChildForm').attr('action', '{% url "accounts:delete_child" 0 %}'.replace('0', childId));
+});
+</script>
+{% endblock %}
