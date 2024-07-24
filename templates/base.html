@@ -199,5 +199,66 @@
             });
         });
     </script>
+<script>
+    $(document).ready(function() {
+        $('.sidebar-toggle').click(function() {
+            $('.sidebar').toggleClass('collapsed');
+            $('.main-content').toggleClass('collapsed');
+            $('.navbar').toggleClass('collapsed');
+            $('.content').toggleClass('collapsed');
+        });
+
+        $('.sidebar a').click(function() {
+            $('.sidebar a').removeClass('selected');
+            $(this).addClass('selected');
+        });
+
+        $('.view-details-btn').on('click', function() {
+            var applicationId = $(this).data('application-id');
+            $('#applicationDetailsContent').html('Loading...');
+            $.ajax({
+                url: '{% url "view_application_details" 0 %}'.replace('0', applicationId),
+                success: function(data) {
+                    console.log(data);  // Log the response
+                    $('#applicationDetailsContent').html(`
+                        <h5>Child Details</h5>
+                        <p>Name: ${data.child_name}</p>
+                        <p>Date of Birth: ${data.child_dob}</p>
+                        <p>Age: ${data.child_age}</p>
+                        <p>NHS Number: ${data.child_nhs_number}</p>
+                        <p>Gender: ${data.child_gender}</p>
+                        <h5>Parent Details</h5>
+                        <p>Name: ${data.parent_name}</p>
+                        <p>Email: ${data.parent_email}</p>
+                        <p>Phone: ${data.parent_phone}</p>
+                        <h5>Preferences</h5>
+                        ${data.preferences.map(preference => `
+                            <div>
+                                <p>School: ${preference.school.name}</p>
+                                <p>Address: ${preference.school.address}</p>
+                                <p>Preference: ${preference.preference}</p>
+                                ${preference.siblings.length > 0 ? `
+                                    <h6>Siblings</h6>
+                                    ${preference.siblings.map(sibling => `
+                                        <p>Name: ${sibling.name}</p>
+                                        <p>Date of Birth: ${sibling.dob}</p>
+                                        <p>Year Group: ${sibling.year_group}</p>
+                                    `).join('')}
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                        <h5>Applied On</h5>
+                        <p>${data.applied_on}</p>
+                    `);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log('AJAX Error: ' + textStatus + ': ' + errorThrown);
+                    $('#applicationDetailsContent').html('<p>Error loading details. Please try again.</p>');
+                }
+            });
+        });
+    });
+</script>
+
 </body>
 </html>

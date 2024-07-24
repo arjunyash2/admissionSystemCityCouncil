@@ -1,0 +1,56 @@
+<!-- admin_applications.html -->
+{% extends 'base.html' %}
+
+{% block title %}Manage Applications{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Manage Applications</h1>
+    <a href="{% url 'add_manual_application' %}" class="btn btn-primary mb-3">Add Manual Application</a>
+    <a href="{% url 'download_pdf_template' %}" class="btn btn-secondary mb-3">Download PDF Template</a>
+    <table class="table table-bordered mt-4">
+        <thead>
+            <tr>
+                <th>Application ID</th>
+                <th>Child</th>
+                <th>Applied On</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for application in applications %}
+                <tr>
+                    <td>{{ application.id }}</td>
+                    <td>{{ application.child.name }}</td>
+                    <td>{{ application.applied_on|date:"F j, Y, g:i a" }}</td>
+                    <td>
+                        <button class="btn btn-primary view-details-btn" data-application-id="{{ application.id }}" data-toggle="modal" data-target="#applicationDetailsModal">View Details</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Application Details Modal -->
+<div class="modal fade" id="applicationDetailsModal" tabindex="-1" aria-labelledby="applicationDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="applicationDetailsModalLabel">Application Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="applicationDetailsContent">
+                    <!-- Application details will be loaded here via AJAX -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

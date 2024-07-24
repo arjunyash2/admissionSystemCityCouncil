@@ -16,6 +16,16 @@ urlpatterns = [
     path('application_success/<int:child_id>/', views.application_success, name='application_success'),
     path('application_tracking/<int:child_id>/', views.application_tracking, name='application_tracking'),
     path('download_application/<int:application_id>/', views.download_application, name='download_application'),
+    path('admin/manage_applications/', views.manage_applications, name='manage_applications'),
+    path('admin/view_application_details/<int:application_id>/', views.view_application_details, name='view_application_details'),
+    path('admin/add_manual_application/', views.add_manual_application, name='add_manual_application'),
+    path('admin/manage_schools/', views.manage_schools, name='manage_schools'),
+    path('admin/add_school/', views.add_school, name='add_school'),
+    path('admin/login/', views.admin_login_view, name='admin_login'),
+    path('admin/add_manual_application/', views.add_manual_application, name='add_manual_application'),
+    path('admin/confirm_manual_application/', views.confirm_manual_application, name='confirm_manual_application'),
+
+    path('admin/download_pdf_template/', views.download_pdf_template, name='download_pdf_template'),
     path('', include('django.contrib.auth.urls')),
 ]
 

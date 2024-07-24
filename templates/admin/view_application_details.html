@@ -1,0 +1,30 @@
+<div>
+    <h5>Parent Details</h5>
+    <p>Name: {{ application.child.parent.forename }} {{ application.child.parent.surname }}</p>
+    <p>Email: {{ application.child.parent.email }}</p>
+    <p>Phone: {{ application.child.parent.mobile_phone }}</p>
+
+    <h5>Child Details</h5>
+    <p>Name: {{ application.child.name }}</p>
+    <p>Date of Birth: {{ application.child.dob }}</p>
+    <p>Age: {{ application.child.dob|age }}</p>
+    <p>Gender: {{ application.child.gender }}</p>
+    <p>NHS Number: {{ application.child.nhs_number }}</p>
+
+    <h5>School Preferences</h5>
+    {% for preference in application.preferences %}
+        <h6>Preference {{ preference.preference }}: {{ preference.school.name }}</h6>
+        <p>Address: {{ preference.school.address }}</p>
+        <p>Phone: {{ preference.school.phone }}</p>
+        <p>Website: <a href="{{ preference.school.website }}" target="_blank">{{ preference.school.website }}</a></p>
+        <p>Email: {{ preference.school.email }}</p>
+        {% if preference.siblings %}
+            <h6>Siblings</h6>
+            {% for sibling in preference.siblings %}
+                <p>Name: {{ sibling.name }}</p>
+                <p>Date of Birth: {{ sibling.dob }}</p>
+                <p>Year Group: {{ sibling.year_group }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+</div>

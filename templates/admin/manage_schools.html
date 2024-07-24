@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Schools{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Manage Schools</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Phone</th>
+                <th>Website</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for school in schools %}
+            <tr>
+                <td>{{ school.name }}</td>
+                <td>{{ school.address }}</td>
+                <td>{{ school.phone }}</td>
+                <td><a href="{{ school.website }}" target="_blank">{{ school.website }}</a></td>
+                <td>{{ school.email }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'add_school' %}" class="btn btn-primary">Add School</a>
+</div>
+{% endblock %}

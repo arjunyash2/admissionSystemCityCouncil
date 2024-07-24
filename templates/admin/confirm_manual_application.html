@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Manual Application{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Confirm Manual Application</h1>
+    <form method="post" action="{% url 'confirm_manual_application' %}">
+        {% csrf_token %}
+        <input type="hidden" name="child_id" value="{{ extracted_data.child_id }}">
+        <input type="hidden" name="preferences" value="{{ preferences|json_script:'preferences' }}">
+
+        <h3>Parent Details</h3>
+        <p>Email: {{ extracted_data.parent_email }}</p>
+        <p>Title: {{ extracted_data.parent_title }}</p>
+        <p>Forename: {{ extracted_data.parent_forename }}</p>
+        <p>Surname: {{ extracted_data.parent_surname }}</p>
+        <p>Sex: {{ extracted_data.parent_sex }}</p>
+        <p>Address: {{ extracted_data.parent_address }}</p>
+        <p>Phone Number: {{ extracted_data.parent_phone }}</p>
+
+        <h3>Child Details</h3>
+        <p>Name: {{ extracted_data.child_name }}</p>
+        <p>Date of Birth: {{ extracted_data.child_dob }}</p>
+        <p>Gender: {{ extracted_data.child_gender }}</p>
+        <p>NHS Number: {{ extracted_data.child_nhs }}</p>
+
+        <h3>Preferences</h3>
+        {% for preference in preferences %}
+            <p>Preference {{ forloop.counter }}:</p>
+            <p>School Name: {{ preference.school_name }}</p>
+            <p>Sibling Name: {{ preference.sibling_name }}</p>
+            <p>Sibling Date of Birth: {{ preference.sibling_dob }}</p>
+            <p>Sibling Year Group: {{ preference.sibling_year_group }}</p>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-success">Submit Application</button>
+    </form>
+</div>
+{% endblock %}
