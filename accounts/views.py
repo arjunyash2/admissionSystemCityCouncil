@@ -3,6 +3,8 @@ from io import BytesIO
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.views.decorators.http import require_http_methods
+
 from .forms import CustomUserCreationForm, ChildForm, SchoolForm, ManualApplicationForm
 from .models import Child, Application, School, CustomUser
 from .utils import fetch_school_details
@@ -78,12 +80,27 @@ def add_child_view(request):
     return render(request, 'add_child.html', {'form': form})
 
 
+# @login_required
+# def child_details_view(request):
+#     children = Child.objects.filter(parent=request.user)
+#     for child in children:
+#         child.age = calculate_age(child.dob)
+#     return render(request, 'dashboard.html', {'children': children})
+
 @login_required
 def child_details_view(request):
     children = Child.objects.filter(parent=request.user)
+    children_with_applications = []
     for child in children:
         child.age = calculate_age(child.dob)
-    return render(request, 'dashboard.html', {'children': children})
+        has_application = Application.objects.filter(child=child).exists()
+        children_with_applications.append({
+            'child': child,
+            'has_application': has_application
+        })
+    return render(request, 'dashboard.html', {'children_with_applications': children_with_applications})
+
+
 
 
 @login_required
@@ -193,10 +210,56 @@ def application_tracking(request, child_id):
     child = get_object_or_404(Child, id=child_id)
     applications = Application.objects.filter(child=child)
 
+    # Function to determine progress steps for an application
+    def get_progress_steps(application):
+        return [
+            {'status': 'submitted', 'label': 'Application Submitted', 'is_active': application.status in ['submitted', 'in_progress', 'offer_received', 'offer_accepted']},
+            {'status': 'in_progress', 'label': 'In Process', 'is_active': application.status in ['in_progress', 'offer_received', 'offer_accepted']},
+            {'status': 'offer_received', 'label': 'Offer Received', 'is_active': application.status in ['offer_received', 'offer_accepted']},
+            {'status': 'offer_accepted', 'label': 'Offer Accepted', 'is_active': application.status == 'offer_accepted'},
+        ]
+
+    # Create a dictionary to hold applications and their progress steps
+    applications_with_progress = [
+        {'application': application, 'progress_steps': get_progress_steps(application)}
+        for application in applications
+    ]
+
     return render(request, 'application_tracking.html', {
         'child': child,
-        'applications': applications
+        'applications_with_progress': applications_with_progress
     })
+
+
+# views.py
+@login_required
+@require_http_methods(["GET", "POST"])
+def edit_application(request, application_id):
+    application = get_object_or_404(Application, id=application_id)
+
+    if request.method == 'POST':
+        # Update application details
+        application.status = request.POST.get('status', application.status)
+        # Handle other fields that need to be updated
+        # For example, updating preferences (assuming a JSON field)
+        application.preferences = request.POST.get('preferences', application.preferences)
+        application.save()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({
+        'application_id': application.id,
+        'child_name': application.child.name,
+        'status': application.status,
+        'applied_on': application.applied_on.strftime('%B %d, %Y, %I:%M %p'),
+        'preferences': application.preferences,
+        # Add other fields to return here
+    })
+@login_required
+def delete_application(request, application_id):
+    application = get_object_or_404(Application, id=application_id)
+    child_id = application.child.id
+    application.delete()
+    return redirect('application_tracking', child_id=child_id)
 
 
 # Parental Login - application download
@@ -279,7 +342,6 @@ def manage_applications(request):
 
 
 @login_required
-@user_passes_test(is_admin)
 def view_application_details(request, application_id):
     application = get_object_or_404(Application, id=application_id)
     child = application.child
@@ -296,10 +358,34 @@ def view_application_details(request, application_id):
         'parent_email': parent.email,
         'parent_phone': parent.mobile_phone,
         'preferences': application.preferences,
-        'applied_on': application.applied_on.strftime('%B %d, %Y, %I:%M %p')
+        'applied_on': application.applied_on.strftime('%B %d, %Y, %I:%M %p'),
+        'status': application.status,
     }
 
     return JsonResponse(response_data)
+
+# @login_required
+# def parent_view_application_details(request, application_id):
+#     application = get_object_or_404(Application, id=application_id)
+#     child = application.child
+#     parent = child.parent
+#
+#     response_data = {
+#         'application_id': application.id,
+#         'child_name': child.name,
+#         'child_dob': child.dob,
+#         'child_age': calculate_age(child.dob),
+#         'child_nhs_number': child.nhs_number,
+#         'child_gender': child.gender,
+#         'parent_name': f"{parent.forename} {parent.surname}",
+#         'parent_email': parent.email,
+#         'parent_phone': parent.mobile_phone,
+#         'preferences': application.preferences,
+#         'applied_on': application.applied_on.strftime('%B %d, %Y, %I:%M %p'),
+#         'status': application.status
+#     }
+#
+#     return JsonResponse(response_data)
 
 
 @login_required

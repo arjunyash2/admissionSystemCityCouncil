@@ -42,11 +42,18 @@ class School(models.Model):
 
 
 class Application(models.Model):
+    STATUS_CHOICES = [
+        ('submitted', 'Application Submitted'),
+        ('in_progress', 'In Progress'),
+        ('offer_received', 'Offer Received'),
+        ('offer_accepted', 'Offer Accepted'),
+    ]
+
     child = models.ForeignKey(Child, on_delete=models.CASCADE)
     applied_on = models.DateTimeField(auto_now_add=True)
     preferences = models.JSONField(default=list)  # Store all preferences as a JSON list
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='submitted')
 
     def __str__(self):
         return f'{self.child.name} - Application'
-
 

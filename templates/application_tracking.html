@@ -1,31 +1,161 @@
-<!-- application_tracking.html -->
 {% extends 'base.html' %}
 
 {% block title %}Application Tracking{% endblock %}
 
 {% block content %}
+
+<style>
+    .progress-bar-horizontal {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 0 20px;
+    }
+
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        width: 100%;
+        text-align: center;
+    }
+
+    .progress-step::before,
+    .progress-step::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 100%;
+        height: 2px;
+        background-color: #c0a359;
+        z-index: -1;
+    }
+
+    .progress-step::before {
+        left: 0;
+    }
+
+    .progress-step::after {
+        right: 0;
+    }
+
+    .progress-step:first-child::before,
+    .progress-step:last-child::after {
+        background-color: transparent;
+    }
+
+    .step-count {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #c0a359;
+        color: #fff;
+        height: 30px;
+        width: 30px;
+        border-radius: 50%;
+        margin-bottom: 5px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .progress-step.is-active .step-count {
+        background-color: #4caf50;
+    }
+
+    .progress-step.is-active::after {
+        background-color: #4caf50;
+    }
+
+    .step-description {
+        font-size: 12px;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+</style>
+
 <div class="container">
     <h1 class="mt-4">Application Tracking for {{ child.name }}</h1>
-    <table class="table table-bordered mt-4">
-        <thead>
-            <tr>
-                <th>Application ID</th>
-                <th>Child</th>
-                <th>Submission Time</th>
-                <th>Download Application</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for application in applications %}
-                <tr>
-                    <td>{{ application.id }}</td>
-                    <td>{{ application.child.name }}</td>
-                    <td>{{ application.applied_on|date:"F j, Y, g:i a" }}</td>
-                    <td><a href="{% url 'download_application' application.id %}" class="btn btn-primary">Download</a></td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+    {% for item in applications_with_progress %}
+        {% with application=item.application progress_steps=item.progress_steps %}
+            <!-- Horizontal Progress Bar -->
+            <div class="progress-bar-horizontal">
+                {% for step in progress_steps %}
+                    <div class="progress-step {% if step.is_active %}is-active{% endif %}">
+                        <div class="step-count">{% if step.is_active %}<i class="fas fa-check"></i>{% else %}{{ forloop.counter }}{% endif %}</div>
+                        <div class="step-description">{{ step.label }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <table class="table table-bordered mt-4">
+                <thead>
+                    <tr>
+                        <th>Application ID</th>
+                        <th>Child</th>
+                        <th>Submission Time</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ application.id }}</td>
+                        <td>{{ application.child.name }}</td>
+                        <td>{{ application.applied_on|date:"F j, Y, g:i a" }}</td>
+                        <td>{{ application.get_status_display }}</td>
+                        <td>
+                            <button class="btn btn-info view-application-btn" data-application-id="{{ application.id }}">View</button>
+                            <a href="{% url 'edit_application' application.id %}" class="btn btn-warning">Edit</a>
+                            <button class="btn btn-danger delete-application-btn" data-application-id="{{ application.id }}">Delete</button>
+                            <a href="{% url 'download_application' application.id %}" class="btn btn-primary">Download</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        {% endwith %}
+    {% endfor %}
     <a href="{% url 'dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
 </div>
+
+<!-- Application Details Modal -->
+<div class="modal fade" id="applicationDetailsModal" tabindex="-1" role="dialog" aria-labelledby="applicationDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="applicationDetailsModalLabel">Application Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-application-form">
+                    {% csrf_token %}
+                    <input type="hidden" id="application-id" name="application_id">
+                    <div class="form-group">
+                        <label for="child-name">Child Name</label>
+                        <input type="text" class="form-control" id="child-name" name="child_name" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select class="form-control" id="status" name="status">
+                            <option value="submitted">Application Submitted</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="offer_received">Offer Received</option>
+                            <option value="offer_accepted">Offer Accepted</option>
+                        </select>
+                    </div>
+                    <!-- Add other fields as needed -->
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
+
+

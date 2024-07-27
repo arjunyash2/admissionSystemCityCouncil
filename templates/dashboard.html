@@ -17,7 +17,7 @@
                     <button class="btn btn-primary float-right" data-toggle="modal" data-target="#addChildModal">Add Child</button>
                 </div>
                 <div class="card-body">
-                    {% for child in children %}
+                    {% for item in children_with_applications %}
                         <div class="card mb-3">
                             <div class="row no-gutters">
                                 <div class="col-md-4">
@@ -25,16 +25,20 @@
                                 </div>
                                 <div class="col-md-8">
                                     <div class="card-body">
-                                        <h5 class="card-title">{{ child.name }}</h5>
-                                        <p class="card-text">Gender: {{ child.gender }}</p>
-                                        <p class="card-text">Date of Birth: {{ child.dob }}</p>
-                                        <p class="card-text">Age: {{ child.age }} years</p>
-                                        <p class="card-text">NHS Number: {{ child.nhs_number }}</p>
-                                        <button class="btn btn-danger" data-toggle="modal" data-target="#deleteChildModal" data-child-id="{{ child.id }}" data-child-name="{{ child.name }}">Delete</button>
-                                        {% if child.age >= 4 and child.age <= 15 %}
-                                            <button class="btn btn-primary apply-school-btn" data-toggle="modal" data-target="#applySchoolModal" data-child-id="{{ child.id }}" data-child-name="{{ child.name }}" data-child-dob="{{ child.dob }}" data-child-nhs="{{ child.nhs_number }}" data-child-gender="{{ child.gender }}" data-child-age="{{ child.age }}">Apply for Schools</button>
+                                        <h5 class="card-title">{{ item.child.name }}</h5>
+                                        <p class="card-text">Gender: {{ item.child.gender }}</p>
+                                        <p class="card-text">Date of Birth: {{ item.child.dob }}</p>
+                                        <p class="card-text">Age: {{ item.child.age }} years</p>
+                                        <p class="card-text">NHS Number: {{ item.child.nhs_number }}</p>
+                                        <button class="btn btn-danger" data-toggle="modal" data-target="#deleteChildModal" data-child-id="{{ item.child.id }}" data-child-name="{{ item.child.name }}">Delete</button>
+                                        {% if item.child.age >= 4 and item.child.age <= 15 %}
+                                            {% if not item.has_application %}
+                                                <button class="btn btn-primary apply-school-btn" data-toggle="modal" data-target="#applySchoolModal" data-child-id="{{ item.child.id }}" data-child-name="{{ item.child.name }}" data-child-dob="{{ item.child.dob }}" data-child-nhs="{{ item.child.nhs_number }}" data-child-gender="{{ item.child.gender }}" data-child-age="{{ item.child.age }}">Apply for Schools</button>
+                                            {% endif %}
+                                            {% if item.has_application %}
+                                                <a href="{% url 'application_tracking' item.child.id %}" class="btn btn-info mt-2">Track Applications</a>
+                                            {% endif %}
                                         {% endif %}
-                                        <a href="{% url 'application_tracking' child.id %}" class="btn btn-info mt-2">Track Applications</a>
                                     </div>
                                 </div>
                             </div>
@@ -44,6 +48,8 @@
             </div>
         </div>
     </div>
+</div>
+
 </div>
 
 <!-- Add Child Modal -->

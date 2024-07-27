@@ -1,0 +1,24 @@
+<!-- edit_application.html -->
+{% extends 'base.html' %}
+
+{% block title %}Edit Application{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Edit Application for {{ application.child.name }}</h1>
+    <form method="post" action="{% url 'edit_application' application.id %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="status">Status</label>
+            <select class="form-control" id="status" name="status">
+                <option value="submitted" {% if application.status == 'submitted' %}selected{% endif %}>Application Submitted</option>
+                <option value="in_progress" {% if application.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="offer_received" {% if application.status == 'offer_received' %}selected{% endif %}>Offer Received</option>
+                <option value="offer_accepted" {% if application.status == 'offer_accepted' %}selected{% endif %}>Offer Accepted</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Save Changes</button>
+        <a href="{% url 'application_tracking' application.child.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
