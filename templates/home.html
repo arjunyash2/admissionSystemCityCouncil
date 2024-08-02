@@ -5,12 +5,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Sheffield School Connect</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+        }
+        .btn-animated {
+            position: relative;
+            overflow: hidden;
+            transition: color 0.4s;
+        }
+        .btn-animated::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%) scaleY(1) scaleX(1.25);
+            top: 100%;
+            width: 140%;
+            height: 180%;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: block;
+            transition: all 0.75s;
+            z-index: 0;
+        }
+        .btn-animated:hover::before {
+            top: -35%;
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        .btn-animated::after {
+            content: '';
+            position: absolute;
+            left: 55%;
+            transform: translateX(-50%) scaleY(1) scaleX(1.45);
+            top: 180%;
+            width: 160%;
+            height: 190%;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: block;
+            transition: all 0.75s;
+            z-index: 0;
+        }
+        .btn-animated:hover::after {
+            top: -45%;
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+        .btn-animated span {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Welcome to Sheffield School Connect</h1>
-        <p><a href="{% url 'login' %}">Login</a> or <a href="{% url 'register' %}">Register</a></p>
-        <a href="{% url 'admin_login' %}">Admin Login</a>
+        <h1 class="text-center">Welcome to Sheffield School Connect</h1>
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">User Login</h5>
+                        <p class="card-text">Access your account here.</p>
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-animated"><span>Login</span></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Register</h5>
+                        <p class="card-text">Create a new account here.</p>
+                        <a href="{% url 'register' %}" class="btn btn-success btn-animated"><span>Register</span></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Admin Login</h5>
+                        <p class="card-text">Access admin panel here.</p>
+                        <a href="{% url 'admin_login' %}" class="btn btn-danger btn-animated"><span>Admin Login</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -114,6 +114,15 @@ def delete_child_view(request, child_id):
     print(f"Delete request not POST")
     return render(request, 'dashboard.html')
 
+from django.core.mail import send_mail
+from django.conf import settings
+
+def send_application_email(child, application_details):
+    subject = 'Application Submitted'
+    message = f'Hello {child.parent.forename},\n\nYour application for your child {child.name} has been successfully submitted.\n\nDetails: {application_details}\n\nBest Regards,\nYour School Admission Team'
+    recipient_list = [child.parent.email]
+
+    send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
 
 # Parental Login - Application To Schools
 @login_required
@@ -191,6 +200,8 @@ def apply_school(request):
             child=child,
             preferences=all_preferences
         )
+        # Send email notification
+        send_application_email(child, all_preferences)
 
         return redirect('application_success', child_id=child.id)
 
@@ -316,7 +327,7 @@ def profile_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('/')
 
 
 # views.py
