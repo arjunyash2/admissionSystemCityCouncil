@@ -153,9 +153,7 @@
                 </div>
                 <div class="form-group">
                     <label for="address">Address</label>
-                    <select class="form-control" id="address" name="address" required>
-                        <!-- Options will be populated by JavaScript -->
-                    </select>
+                    <input type="text" class="form-control" id="address" name="address" required>
                 </div>
                 <div class="form-group">
                     <label for="home_phone">Home phone number</label>
@@ -174,27 +172,5 @@
         </div>
     </div>
 
-    <script>
-        async function fetchAddresses() {
-            const postcode = document.getElementById('postcode').value;
-            const apiKey = 'A8bj2ZSwDMB3fMQXu95Rpq7diuPDPgpZ';
-            const response = await fetch(`https://api.os.uk/search/names/v1/postcode?postcode=${postcode}&key=${apiKey}`);
-            const data = await response.json();
-
-            const addressSelect = document.getElementById('address');
-            addressSelect.innerHTML = ''; // Clear previous options
-
-            if (data && data.results) {
-                data.results.forEach(result => {
-                    const option = document.createElement('option');
-                    option.value = result.DPA.ADDRESS;
-                    option.text = result.DPA.ADDRESS;
-                    addressSelect.appendChild(option);
-                });
-            }
-        }
-
-        document.getElementById('postcode').addEventListener('change', fetchAddresses);
-    </script>
 </body>
 </html>

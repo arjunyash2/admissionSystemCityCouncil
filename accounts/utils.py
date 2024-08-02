@@ -9,7 +9,7 @@ import tempfile
 
 
 
-def fetch_school_details(place_id, lng, lat):
+def fetch_school_details(place_id, lat, lng):
 
     api_key = 'iW9ceziSt7BhDuG3FZGbuRkk09ETfoDJznAqwbcjMBw'
     url = f'https://discover.search.hereapi.com/v1/discover?at={lat},{lng}&q=schools&apiKey={api_key}'

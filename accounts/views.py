@@ -117,12 +117,35 @@ def delete_child_view(request, child_id):
 from django.core.mail import send_mail
 from django.conf import settings
 
+
 def send_application_email(child, application_details):
     subject = 'Application Submitted'
-    message = f'Hello {child.parent.forename},\n\nYour application for your child {child.name} has been successfully submitted.\n\nDetails: {application_details}\n\nBest Regards,\nYour School Admission Team'
+
+    details = "\n\n".join([
+        f"Preference {detail['preference']}:\n"
+        f"School Name: {detail['school']['name']}\n"
+        f"Address: {detail['school']['address']}\n"
+        f"Latitude: {detail['school']['latitude']}\n"
+        f"Longitude: {detail['school']['longitude']}\n"
+        f"Distance: {detail['school']['distance']} meters\n"
+        f"Phone: {detail['school']['phone']}\n"
+        f"Website: {detail['school']['website']}\n"
+        f"Email: {detail['school']['email'] or 'N/A'}"
+        for detail in application_details
+    ])
+
+    message = (
+        f"Hello {child.parent.forename},\n\n"
+        f"Your application for your child {child.name} has been successfully submitted.\n\n"
+        f"Details:\n{details}\n\n"
+        "Best Regards,\n"
+        "Your School Admission Team"
+    )
+
     recipient_list = [child.parent.email]
 
     send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
+
 
 # Parental Login - Application To Schools
 @login_required
@@ -149,7 +172,6 @@ def apply_school(request):
 
         for index, place_id in enumerate(selected_school_ids):
             school_details = fetch_school_details(place_id, latitude, longitude)
-            print('School Details:', school_details)
 
             if school_details is None:
                 print(f"No details found for school with ID {place_id}")
@@ -169,13 +191,11 @@ def apply_school(request):
                 }
             )
 
-            # Find matching sibling data for the current preference using school ID
+            # Find matching sibling data for the current preference using preference_value
             siblings_for_preference = []
             for sibling_info in sibling_data:
-                if sibling_info['preference'] == index + 1:
-                    for sibling in sibling_info['siblings']:
-                        if sibling['school_id'] == place_id:
-                            siblings_for_preference.append(sibling)
+                if sibling_info['preference_value'] == str(index + 1):
+                    siblings_for_preference = sibling_info['siblings']
 
             print(
                 f"Adding preference for child {child_id} at school {school.name} with preference {index + 1} and siblings {siblings_for_preference}")
@@ -195,17 +215,19 @@ def apply_school(request):
                 'siblings': siblings_for_preference
             })
 
-            # Create one Application object and update with all preferences and siblings
+        # Create one Application object and update with all preferences and siblings
         application = Application.objects.create(
             child=child,
             preferences=all_preferences
         )
         # Send email notification
         send_application_email(child, all_preferences)
+        print(application)
 
         return redirect('application_success', child_id=child.id)
 
     return redirect('dashboard')
+
 
 
 # Parental Login - Application success Page
@@ -270,7 +292,7 @@ def delete_application(request, application_id):
     application = get_object_or_404(Application, id=application_id)
     child_id = application.child.id
     application.delete()
-    return redirect('application_tracking', child_id=child_id)
+    return redirect('dashboard')
 
 
 # Parental Login - application download

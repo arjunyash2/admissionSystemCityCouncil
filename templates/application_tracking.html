@@ -108,8 +108,8 @@
                         <td>{{ application.get_status_display }}</td>
                         <td>
                             <button class="btn btn-info view-application-btn" data-application-id="{{ application.id }}">View</button>
-                            <a href="{% url 'edit_application' application.id %}" class="btn btn-warning">Edit</a>
-                            <button class="btn btn-danger delete-application-btn" data-application-id="{{ application.id }}">Delete</button>
+<!--                            <a href="{% url 'edit_application' application.id %}" class="btn btn-warning">Edit</a>-->
+                            <a href="{% url 'delete_application' application.id %}" class= "btn btn-danger delete-application-btn">Delete</a>
                             <a href="{% url 'download_application' application.id %}" class="btn btn-primary">Download</a>
                         </td>
                     </tr>
