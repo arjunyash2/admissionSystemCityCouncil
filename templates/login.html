@@ -192,6 +192,22 @@
             background-position: right;
         }
 
+        .input-div.otp {
+            display: none;
+        }
+
+        .input-div.otp.show {
+            display: grid;
+        }
+
+        .otp-verified {
+            color: green;
+            display: none;
+        }
+
+        .otp-verified.show {
+            display: inline;
+        }
 
         @media screen and (max-width: 1050px){
             .container{
@@ -240,7 +256,7 @@
             <img src="https://raw.githubusercontent.com/sefyudem/Responsive-Login-Form/master/img/bg.svg">
         </div>
         <div class="login-content">
-            <form method="post" action="{% url 'login' %}">
+            <form method="post" action="{% url 'login' %}" id="login-form">
                 {% csrf_token %}
                 <img src="https://raw.githubusercontent.com/sefyudem/Responsive-Login-Form/master/img/avatar.svg">
                 <h2 class="title">Welcome</h2>
@@ -250,7 +266,7 @@
                     </div>
                     <div class="div">
                         <h5>Username</h5>
-                        <input type="text" class="input" name="username" required>
+                        <input type="text" class="input" name="username" id="username" required>
                     </div>
                 </div>
                 <div class="input-div pass">
@@ -259,16 +275,40 @@
                     </div>
                     <div class="div">
                         <h5>Password</h5>
-                        <input type="password" class="input" name="password" required>
+                        <input type="password" class="input" name="password" id="password" required>
+                    </div>
+                </div>
+                <div class="input-div otp" id="otp-div">
+                    <div class="i">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <div class="div">
+                        <h5>OTP</h5>
+                        <input type="text" class="input" name="otp" id="otp">
+                    </div>
+                    <div class="otp-verified" id="otp-verified">
+                        <i class="fas fa-check"></i>
                     </div>
                 </div>
                 <a href="{% url 'password_reset' %}">Forgot Password?</a>
-                <input type="submit" class="btn" value="Login">
+                <input type="submit" class="btn" id="send-otp-button" name="send_otp" value="Send OTP">
+                <input type="submit" class="btn" id="login-button" name="login" value="Login" style="display: none;">
                 <div class="text-center mt-3">
                     <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
                 </div>
                 {% if error %}
                     <div class="alert alert-danger mt-3">{{ error }}</div>
+                {% endif %}
+                {% if otp_sent %}
+                    <script>
+                        document.getElementById('otp-div').classList.add('show');
+                        document.getElementById('username').value = "{{ username }}";
+                        document.getElementById('password').value = "{{ password }}";
+                        document.getElementById('username').readOnly = true;
+                        document.getElementById('password').readOnly = true;
+                        document.getElementById('send-otp-button').style.display = 'none';
+                        document.getElementById('login-button').style.display = 'block';
+                    </script>
                 {% endif %}
             </form>
         </div>
@@ -276,6 +316,9 @@
 
     <script>
         const inputs = document.querySelectorAll(".input");
+        const otpInput = document.getElementById('otp');
+        const otpVerified = document.getElementById('otp-verified');
+        const loginButton = document.getElementById('login-button');
 
         function addcl(){
             let parent = this.parentNode.parentNode;
@@ -292,6 +335,34 @@
         inputs.forEach(input => {
             input.addEventListener("focus", addcl);
             input.addEventListener("blur", remcl);
+        });
+
+        otpInput.addEventListener('input', function() {
+            const otp = this.value;
+            if (otp.length === 6) {
+                // Verify OTP via AJAX
+                fetch('{% url "verify_otp_ajax" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({ otp, username: document.getElementById('username').value }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.valid) {
+                        otpVerified.classList.add('show');
+                        loginButton.disabled = false;
+                    } else {
+                        otpVerified.classList.remove('show');
+                        loginButton.disabled = true;
+                    }
+                });
+            } else {
+                otpVerified.classList.remove('show');
+                loginButton.disabled = true;
+            }
         });
     </script>
 </body>

@@ -4,6 +4,8 @@ from . import views
 
 urlpatterns = [
     path('login/', views.login_view, name='login'),
+    path('verify_otp_ajax/', views.verify_otp_ajax, name='verify_otp_ajax'),
+
     path('register/', views.register_view, name='register'),
     path('register_success/', views.register_success_view, name='register_success'),
     path('add_child/', views.add_child_view, name='add_child'),

@@ -30,12 +30,13 @@
                                         <p class="card-text">Date of Birth: {{ item.child.dob }}</p>
                                         <p class="card-text">Age: {{ item.child.age }} years</p>
                                         <p class="card-text">NHS Number: {{ item.child.nhs_number }}</p>
-                                        <button class="btn btn-danger" data-toggle="modal" data-target="#deleteChildModal" data-child-id="{{ item.child.id }}" data-child-name="{{ item.child.name }}">Delete</button>
                                         {% if item.child.age >= 4 and item.child.age <= 15 %}
+                                        <p>Eligible for Primary School: Reception</p>
                                             {% if not item.has_application %}
                                                 <button class="btn btn-primary apply-school-btn" data-toggle="modal" data-target="#applySchoolModal" data-child-id="{{ item.child.id }}" data-child-name="{{ item.child.name }}" data-child-dob="{{ item.child.dob }}" data-child-nhs="{{ item.child.nhs_number }}" data-child-gender="{{ item.child.gender }}" data-child-age="{{ item.child.age }}">Apply for Schools</button>
                                             {% endif %}
                                             {% if item.has_application %}
+                                        <button class="btn btn-danger" data-toggle="modal" data-target="#deleteChildModal" data-child-id="{{ item.child.id }}" data-child-name="{{ item.child.name }}">Delete</button>
                                                 <a href="{% url 'application_tracking' item.child.id %}" class="btn btn-info mt-2">Track Applications</a>
                                             {% endif %}
                                         {% endif %}

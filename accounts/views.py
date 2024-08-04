@@ -3,7 +3,9 @@ from io import BytesIO
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_POST
 
 from .forms import CustomUserCreationForm, ChildForm, SchoolForm, ManualApplicationForm
 from .models import Child, Application, School, CustomUser
@@ -20,6 +22,13 @@ from django.http import JsonResponse
 from PIL import Image
 from pdf2image import convert_from_path
 from .utils import create_pdf_template, extract_details_from_text, ocr_from_image
+from django.core.mail import send_mail
+from django.conf import settings
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse, HttpResponse
+from .models import Application, School
+
+
 
 
 def calculate_age(dob):
@@ -34,18 +43,59 @@ def home_view(request):
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('child_details')  # Redirect to child details page after login
-        else:
-            # Return an 'invalid login' error message.
-            return render(request, 'login.html', {'error': 'Invalid username or password'})
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        if 'send_otp' in request.POST:
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                # Generate OTP
+                otp = get_random_string(length=6, allowed_chars='1234567890')
+                user.otp = otp
+                user.save()
+
+                # Send OTP via email
+                send_mail(
+                    'Your OTP Code',
+                    f'Your OTP code is {otp}',
+                    settings.EMAIL_HOST_USER,
+                    [user.email],
+                    fail_silently=False,
+                )
+
+                return render(request, 'login.html', {'otp_sent': True, 'username': username, 'password': password})
+            else:
+                return render(request, 'login.html', {'error': 'Invalid username or password'})
+
+        elif 'login' in request.POST:
+            otp = request.POST.get('otp')
+            user = CustomUser.objects.get(username=username)
+
+            if otp == user.otp:
+                authenticate(request, username=username, password=password)
+                login(request, user)
+                return redirect('child_details')
+            else:
+                return render(request, 'login.html',
+                              {'otp_sent': True, 'error': 'Invalid OTP', 'username': username, 'password': password})
+
     return render(request, 'login.html')
 
 
+@require_POST
+def verify_otp_ajax(request):
+    data = json.loads(request.body)
+    username = data.get('username')
+    otp = data.get('otp')
+
+    try:
+        user = CustomUser.objects.get(username=username)
+        if user.otp == otp:
+            return JsonResponse({'valid': True})
+    except CustomUser.DoesNotExist:
+        pass
+
+    return JsonResponse({'valid': False})
 def register_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -101,8 +151,6 @@ def child_details_view(request):
     return render(request, 'dashboard.html', {'children_with_applications': children_with_applications})
 
 
-
-
 @login_required
 def delete_child_view(request, child_id):
     print(f"Attempting to delete child with ID: {child_id}")
@@ -113,9 +161,6 @@ def delete_child_view(request, child_id):
         return redirect('dashboard')
     print(f"Delete request not POST")
     return render(request, 'dashboard.html')
-
-from django.core.mail import send_mail
-from django.conf import settings
 
 
 def send_application_email(child, application_details):
@@ -230,7 +275,6 @@ def apply_school(request):
     return redirect('dashboard')
 
 
-
 # Parental Login - Application success Page
 @login_required
 def application_success(request, child_id):
@@ -247,10 +291,14 @@ def application_tracking(request, child_id):
     # Function to determine progress steps for an application
     def get_progress_steps(application):
         return [
-            {'status': 'submitted', 'label': 'Application Submitted', 'is_active': application.status in ['submitted', 'in_progress', 'offer_received', 'offer_accepted']},
-            {'status': 'in_progress', 'label': 'In Process', 'is_active': application.status in ['in_progress', 'offer_received', 'offer_accepted']},
-            {'status': 'offer_received', 'label': 'Offer Received', 'is_active': application.status in ['offer_received', 'offer_accepted']},
-            {'status': 'offer_accepted', 'label': 'Offer Accepted', 'is_active': application.status == 'offer_accepted'},
+            {'status': 'submitted', 'label': 'Application Submitted',
+             'is_active': application.status in ['submitted', 'in_progress', 'offer_received', 'offer_accepted']},
+            {'status': 'in_progress', 'label': 'In Process',
+             'is_active': application.status in ['in_progress', 'offer_received', 'offer_accepted']},
+            {'status': 'offer_received', 'label': 'Offer Received',
+             'is_active': application.status in ['offer_received', 'offer_accepted']},
+            {'status': 'offer_accepted', 'label': 'Offer Accepted',
+             'is_active': application.status == 'offer_accepted'},
         ]
 
     # Create a dictionary to hold applications and their progress steps
@@ -267,9 +315,7 @@ def application_tracking(request, child_id):
 
 # views.py
 
-from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse, HttpResponse
-from .models import Application, School
+
 @require_http_methods(["GET"])
 def view_application_details(request, application_id):
     try:
@@ -298,6 +344,7 @@ def view_application_details(request, application_id):
         print("Error:", e)  # Debugging line
         return JsonResponse({'error': str(e)}, status=500)
 
+
 @require_http_methods(["POST"])
 def edit_application(request, application_id):
     application = get_object_or_404(Application, id=application_id)
@@ -313,6 +360,7 @@ def edit_application(request, application_id):
     application.save()
     return JsonResponse({'success': True})
 
+
 @require_http_methods(["POST"])
 def edit_application_status(request, application_id):
     application = get_object_or_404(Application, id=application_id)
@@ -322,6 +370,7 @@ def edit_application_status(request, application_id):
         send_offer_acceptance_email(application.child, application.offered_school)
     application.save()
     return JsonResponse({'success': True})
+
 
 def send_offer_acceptance_email(child, offered_school):
     subject = 'Offer Accepted'
@@ -369,6 +418,7 @@ def send_offer_email(child, offered_school):
     recipient_list = [child.parent.email]
 
     send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
+
 
 @login_required
 def delete_application(request, application_id):

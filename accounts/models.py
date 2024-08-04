@@ -13,6 +13,7 @@ class CustomUser(AbstractUser):
     home_phone = models.CharField(max_length=20, blank=True)
     mobile_phone = models.CharField(max_length=20, blank=True)
     work_phone = models.CharField(max_length=20, blank=True)
+    otp = models.CharField(max_length=6, blank=True, null=True)
 
 
 class Child(models.Model):
