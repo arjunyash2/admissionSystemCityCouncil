@@ -202,6 +202,7 @@ def apply_school(request):
 
             all_preferences.append({
                 'school': {
+                    'id': school.id,  # Add school ID here
                     'name': school.name,
                     'address': school.address,
                     'latitude': school.latitude,
@@ -265,28 +266,110 @@ def application_tracking(request, child_id):
 
 
 # views.py
-@login_required
-@require_http_methods(["GET", "POST"])
+
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse, HttpResponse
+from .models import Application, School
+@require_http_methods(["GET"])
+def view_application_details(request, application_id):
+    try:
+        application = get_object_or_404(Application, id=application_id)
+        print(application)
+        offered_school = application.offered_school
+        data = {
+            'application_id': application.id,
+            'child_name': application.child.name,
+            'child_dob': application.child.dob.strftime('%Y-%m-%d'),
+            'child_age': calculate_age(application.child.dob),
+            'child_nhs_number': application.child.nhs_number,
+            'child_gender': application.child.gender,
+            'parent_name': f"{application.child.parent.forename} {application.child.parent.surname}",
+            'parent_email': application.child.parent.email,
+            'parent_phone': application.child.parent.mobile_phone,
+            'applied_on': application.applied_on.strftime('%B %d, %Y, %I:%M %p'),
+            'status': application.status,
+            'preferences': application.preferences,
+            'offered_school_id': offered_school.id if offered_school else None,
+            'offered_school_name': offered_school.name if offered_school else None,
+        }
+        print("Sending data to frontend:", data)  # Debugging line
+        return JsonResponse(data)
+    except Exception as e:
+        print("Error:", e)  # Debugging line
+        return JsonResponse({'error': str(e)}, status=500)
+
+@require_http_methods(["POST"])
 def edit_application(request, application_id):
     application = get_object_or_404(Application, id=application_id)
+    new_status = request.POST.get('status')
+    application.status = new_status
 
-    if request.method == 'POST':
-        # Update application details
-        application.status = request.POST.get('status', application.status)
-        # Handle other fields that need to be updated
-        # For example, updating preferences (assuming a JSON field)
-        application.preferences = request.POST.get('preferences', application.preferences)
-        application.save()
-        return JsonResponse({'success': True})
+    if new_status == 'offer_received':
+        offer_school_id = request.POST.get('offer_school')
+        offer_school = get_object_or_404(School, id=offer_school_id)
+        application.offered_school = offer_school  # Set the offered_school field
+        send_offer_email(application.child, offer_school)  # Send offer email
 
-    return JsonResponse({
-        'application_id': application.id,
-        'child_name': application.child.name,
-        'status': application.status,
-        'applied_on': application.applied_on.strftime('%B %d, %Y, %I:%M %p'),
-        'preferences': application.preferences,
-        # Add other fields to return here
-    })
+    application.save()
+    return JsonResponse({'success': True})
+
+@require_http_methods(["POST"])
+def edit_application_status(request, application_id):
+    application = get_object_or_404(Application, id=application_id)
+    new_status = request.POST.get('status')
+    application.status = new_status
+    if application.status == 'offer_accepted':
+        send_offer_acceptance_email(application.child, application.offered_school)
+    application.save()
+    return JsonResponse({'success': True})
+
+def send_offer_acceptance_email(child, offered_school):
+    subject = 'Offer Accepted'
+
+    message = (
+        f"Hello {child.parent.forename},\n\n"
+        f"Congratulations! Your child {child.name} has Accepted an offer.\n\n"
+        f"Offered School Details:\n"
+        f"School Name: {offered_school.name}\n"
+        f"Address: {offered_school.address}\n"
+        f"Latitude: {offered_school.latitude}\n"
+        f"Longitude: {offered_school.longitude}\n"
+        f"Distance: {offered_school.distance} meters\n"
+        f"Phone: {offered_school.phone}\n"
+        f"Website: {offered_school.website}\n"
+        f"Email: {offered_school.email or 'N/A'}\n\n"
+        "Best Regards,\n"
+        "Your School Admission Team"
+    )
+
+    recipient_list = [child.parent.email]
+
+    send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
+
+
+def send_offer_email(child, offered_school):
+    subject = 'Offer Received'
+
+    message = (
+        f"Hello {child.parent.forename},\n\n"
+        f"Congratulations! Your child {child.name} has received an offer.\n\n"
+        f"Offered School Details:\n"
+        f"School Name: {offered_school.name}\n"
+        f"Address: {offered_school.address}\n"
+        f"Latitude: {offered_school.latitude}\n"
+        f"Longitude: {offered_school.longitude}\n"
+        f"Distance: {offered_school.distance} meters\n"
+        f"Phone: {offered_school.phone}\n"
+        f"Website: {offered_school.website}\n"
+        f"Email: {offered_school.email or 'N/A'}\n\n"
+        "Best Regards,\n"
+        "Your School Admission Team"
+    )
+
+    recipient_list = [child.parent.email]
+
+    send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
+
 @login_required
 def delete_application(request, application_id):
     application = get_object_or_404(Application, id=application_id)
@@ -374,28 +457,28 @@ def manage_applications(request):
     return render(request, 'admin/manage_applications.html', {'applications': applications})
 
 
-@login_required
-def view_application_details(request, application_id):
-    application = get_object_or_404(Application, id=application_id)
-    child = application.child
-    parent = child.parent
-
-    response_data = {
-        'application_id': application.id,
-        'child_name': child.name,
-        'child_dob': child.dob,
-        'child_age': calculate_age(child.dob),
-        'child_nhs_number': child.nhs_number,
-        'child_gender': child.gender,
-        'parent_name': f"{parent.forename} {parent.surname}",
-        'parent_email': parent.email,
-        'parent_phone': parent.mobile_phone,
-        'preferences': application.preferences,
-        'applied_on': application.applied_on.strftime('%B %d, %Y, %I:%M %p'),
-        'status': application.status,
-    }
-
-    return JsonResponse(response_data)
+# @login_required
+# def view_application_details(request, application_id):
+#     application = get_object_or_404(Application, id=application_id)
+#     child = application.child
+#     parent = child.parent
+#
+#     response_data = {
+#         'application_id': application.id,
+#         'child_name': child.name,
+#         'child_dob': child.dob,
+#         'child_age': calculate_age(child.dob),
+#         'child_nhs_number': child.nhs_number,
+#         'child_gender': child.gender,
+#         'parent_name': f"{parent.forename} {parent.surname}",
+#         'parent_email': parent.email,
+#         'parent_phone': parent.mobile_phone,
+#         'preferences': application.preferences,
+#         'applied_on': application.applied_on.strftime('%B %d, %Y, %I:%M %p'),
+#         'status': application.status,
+#     }
+#
+#     return JsonResponse(response_data)
 
 # @login_required
 # def parent_view_application_details(request, application_id):

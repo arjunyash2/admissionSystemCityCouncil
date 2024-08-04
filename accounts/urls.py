@@ -26,8 +26,9 @@ urlpatterns = [
     path('admin/confirm_manual_application/', views.confirm_manual_application, name='confirm_manual_application'),
     path('admin/download_pdf_template/', views.download_pdf_template, name='download_pdf_template'),
     path('edit_application/<int:application_id>/', views.edit_application, name='edit_application'),
+    path('view_application_details/<int:application_id>/', views.view_application_details, name='view_application_details'),
     path('delete_application/<int:application_id>/', views.delete_application, name='delete_application'),
-
+    path('edit_application_status/<int:application_id>/', views.edit_application_status, name='edit_application_status'),
     path('', include('django.contrib.auth.urls')),
 ]
 

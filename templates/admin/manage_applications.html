@@ -13,6 +13,7 @@
                 <th>Application ID</th>
                 <th>Child</th>
                 <th>Applied On</th>
+                <th>Status</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -24,8 +25,10 @@
                     <td>{{ application.applied_on|date:"F j, Y, g:i a" }}</td>
                     <td>{{ application.get_status_display }}</td>
                     <td>
-                        <button class="btn btn-primary view-details-btn" data-application-id="{{ application.id }}" data-toggle="modal" data-target="#applicationDetailsModal">View Details</button>
-                        <button class="btn btn-warning edit-application-btn" data-application-id="{{ application.id }}">Edit</button>
+                        <button class="btn btn-primary view-application-btn" data-application-id="{{ application.id }}" data-toggle="modal" data-target="#applicationDetailsModal">View Details</button>
+                        {% if user.is_staff %}
+                            <button class="btn btn-warning edit-application-btn" data-application-id="{{ application.id }}" data-toggle="modal" data-target="#applicationDetailsModal">Edit</button>
+                        {% endif %}
                         <button class="btn btn-danger delete-application-btn" data-application-id="{{ application.id }}">Delete</button>
                         <a href="{% url 'download_application' application.id %}" class="btn btn-primary">Download</a>
                     </td>
@@ -49,6 +52,7 @@
                 <div id="applicationDetailsContent">
                     <!-- Application details will be loaded here via AJAX -->
                 </div>
+                {% if user.is_staff %}
                 <form id="edit-application-form" style="display:none;">
                     {% csrf_token %}
                     <input type="hidden" id="application-id" name="application_id">
@@ -61,13 +65,22 @@
                             <option value="offer_accepted">Offer Accepted</option>
                         </select>
                     </div>
+                    <div class="form-group" id="offer-school-group" style="display:none;">
+                        <label for="offer_school">Select School for Offer</label>
+                        <select class="form-control" id="offer_school" name="offer_school">
+                            <!-- Schools will be populated via JavaScript -->
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-success">Save Changes</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 </form>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
+{% block extra_js %}
 
+{% endblock %}

@@ -108,9 +108,12 @@
                         <td>{{ application.get_status_display }}</td>
                         <td>
                             <button class="btn btn-info view-application-btn" data-application-id="{{ application.id }}">View</button>
-<!--                            <a href="{% url 'edit_application' application.id %}" class="btn btn-warning">Edit</a>-->
                             <a href="{% url 'delete_application' application.id %}" class= "btn btn-danger delete-application-btn">Delete</a>
                             <a href="{% url 'download_application' application.id %}" class="btn btn-primary">Download</a>
+                            {% if application.status == 'offer_received' %}
+                                <button class="btn btn-success accept-offer-btn" data-application-id="{{ application.id }}">Accept Offer</button>
+                                <button class="btn btn-warning reject-offer-btn" data-application-id="{{ application.id }}">Reject Offer</button>
+                            {% endif %}
                         </td>
                     </tr>
                 </tbody>
@@ -121,8 +124,8 @@
 </div>
 
 <!-- Application Details Modal -->
-<div class="modal fade" id="applicationDetailsModal" tabindex="-1" role="dialog" aria-labelledby="applicationDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="applicationDetailsModal" tabindex="-1" aria-labelledby="applicationDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="applicationDetailsModalLabel">Application Details</h5>
@@ -131,13 +134,13 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form id="edit-application-form">
+                <div id="applicationDetailsContent">
+                    <!-- Application details will be loaded here via AJAX -->
+                </div>
+                {% if user.is_staff %}
+                <form id="edit-application-form" style="display:none;">
                     {% csrf_token %}
                     <input type="hidden" id="application-id" name="application_id">
-                    <div class="form-group">
-                        <label for="child-name">Child Name</label>
-                        <input type="text" class="form-control" id="child-name" name="child_name" disabled>
-                    </div>
                     <div class="form-group">
                         <label for="status">Status</label>
                         <select class="form-control" id="status" name="status">
@@ -147,15 +150,13 @@
                             <option value="offer_accepted">Offer Accepted</option>
                         </select>
                     </div>
-                    <!-- Add other fields as needed -->
                     <button type="submit" class="btn btn-success">Save Changes</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 </form>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
 {% endblock %}
-
-
