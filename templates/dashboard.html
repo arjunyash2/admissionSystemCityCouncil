@@ -36,10 +36,10 @@
                                                 <button class="btn btn-primary apply-school-btn" data-toggle="modal" data-target="#applySchoolModal" data-child-id="{{ item.child.id }}" data-child-name="{{ item.child.name }}" data-child-dob="{{ item.child.dob }}" data-child-nhs="{{ item.child.nhs_number }}" data-child-gender="{{ item.child.gender }}" data-child-age="{{ item.child.age }}">Apply for Schools</button>
                                             {% endif %}
                                             {% if item.has_application %}
-                                        <button class="btn btn-danger" data-toggle="modal" data-target="#deleteChildModal" data-child-id="{{ item.child.id }}" data-child-name="{{ item.child.name }}">Delete</button>
                                                 <a href="{% url 'application_tracking' item.child.id %}" class="btn btn-info mt-2">Track Applications</a>
                                             {% endif %}
                                         {% endif %}
+                                        <button class="btn btn-danger" data-toggle="modal" data-target="#deleteChildModal" data-child-id="{{ item.child.id }}" data-child-name="{{ item.child.name }}">Delete</button>
                                     </div>
                                 </div>
                             </div>
@@ -97,6 +97,7 @@
     </div>
 </div>
 
+<!-- Apply for Schools Modal -->
 <!-- Apply for Schools Modal -->
 <div class="modal fade" id="applySchoolModal" tabindex="-1" aria-labelledby="applySchoolModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -291,80 +292,80 @@ $(document).ready(function () {
     });
 
     $('#nextToStep4').on('click', function () {
-    $('#confirmChildName').text($('#childName').text());
-    $('#confirmChildDob').text($('#childDob').text());
-    $('#confirmChildAge').text($('#childAge').text());
-    $('#confirmChildNhs').text($('#childNhs').text());
-    $('#confirmChildGender').text($('#childGender').text());
+        $('#confirmChildName').text($('#childName').text());
+        $('#confirmChildDob').text($('#childDob').text());
+        $('#confirmChildAge').text($('#childAge').text());
+        $('#confirmChildNhs').text($('#childNhs').text());
+        $('#confirmChildGender').text($('#childGender').text());
 
-    $('#confirmationPreferences').empty();
-    const siblingData = [];
-    let hasPreferences = false;
+        $('#confirmationPreferences').empty();
+        const siblingData = [];
+        let hasPreferences = false;
 
-    $('#selectedSchools .form-group').each(function (index) {
-        const schoolTitle = $(this).find('label').text().split(': ')[1];
-        const preferenceValue = $(this).find('select').val();
-        const siblingCheckbox = $(this).find('.sibling-checkbox').is(':checked');
-        const siblingName = $(this).find('.sibling-name').val();
-        const siblingDob = $(this).find('.sibling-dob').val();
-        const siblingYearGroup = $(this).find('.sibling-year-group').val();
+        $('#selectedSchools .form-group').each(function (index) {
+            const schoolTitle = $(this).find('label').text().split(': ')[1];
+            const preferenceValue = $(this).find('select').val();
+            const siblingCheckbox = $(this).find('.sibling-checkbox').is(':checked');
 
-        if (schoolTitle && preferenceValue) {
-            hasPreferences = true;
-            const preference = {
-                preference: index + 1,
-                school_title: schoolTitle,
-                preference_value: preferenceValue,
-                siblings: []
-            };
+            if (schoolTitle && preferenceValue) {
+                hasPreferences = true;
+                const preference = {
+                    preference: index + 1,
+                    school_title: schoolTitle,
+                    preference_value: preferenceValue,
+                    siblings: []
+                };
 
-            if (siblingCheckbox) {
-                preference.siblings.push({
-                    name: siblingName,
-                    dob: siblingDob,
-                    year_group: siblingYearGroup,
-                    school_id: $(this).find('.sibling-checkbox').val()  // Ensure school ID is captured correctly
-                });
+                let siblingDetails = '';
+                if (siblingCheckbox) {
+                    const siblingName = $(this).find('.sibling-name').val();
+                    const siblingDob = $(this).find('.sibling-dob').val();
+                    const siblingYearGroup = $(this).find('.sibling-year-group').val();
+
+                    if (siblingName && siblingDob && siblingYearGroup) {
+                        preference.siblings.push({
+                            name: siblingName,
+                            dob: siblingDob,
+                            year_group: siblingYearGroup,
+                            school_id: $(this).find('.sibling-checkbox').val()
+                        });
+
+                        siblingDetails = `
+                            <p><strong>Sibling Name:</strong> ${siblingName}</p>
+                            <p><strong>Sibling Date of Birth:</strong> ${siblingDob}</p>
+                            <p><strong>Sibling Year Group:</strong> ${siblingYearGroup}</p>
+                        `;
+                    }
+                }
+
+                $('#confirmationPreferences').append(`
+                    <div>
+                        <p><strong>Preference ${index + 1}:</strong> ${schoolTitle}</p>
+                        <p><strong>Preference Value:</strong> ${preferenceValue}</p>
+                        ${siblingDetails}
+                    </div>
+                `);
+
+                siblingData.push(preference);
             }
+        });
 
-            siblingData.push(preference);
-
-            let siblingInfoHtml = '';
-            if (siblingCheckbox) {
-                siblingInfoHtml = `
-                    <p>Sibling Name: ${siblingName}</p>
-                    <p>Sibling Date of Birth: ${siblingDob}</p>
-                    <p>Sibling Year Group: ${siblingYearGroup}</p>
-                `;
-            }
-
-            $('#confirmationPreferences').append(`
-                <div>
-                    <p>Preference ${index + 1}: ${schoolTitle}</p>
-                    <p>Preference Value: ${preferenceValue}</p>
-                    ${siblingInfoHtml}
-                </div>
-            `);
+        if (!hasPreferences) {
+            alert('Please provide at least one preference.');
+            return;
         }
+
+        console.log('Sibling Data:', siblingData);
+
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'sibling_data',
+            value: JSON.stringify(siblingData)
+        }).appendTo('#applySchoolForm');
+
+        $('#step3').hide();
+        $('#step4').show();
     });
-
-    if (!hasPreferences) {
-        alert('Please provide at least one preference.');
-        return;
-    }
-
-    console.log('Sibling Data:', siblingData);
-
-    $('<input>').attr({
-        type: 'hidden',
-        name: 'sibling_data',
-        value: JSON.stringify(siblingData)
-    }).appendTo('#applySchoolForm');
-
-    $('#step3').hide();
-    $('#step4').show();
-});
-
 
     $('#applySchoolForm').on('submit', function (e) {
         e.preventDefault();
@@ -408,6 +409,11 @@ $(document).ready(function () {
         $('#step2').hide();
         $('#step1').show();
     });
+
+
+
+
+
 
     function fetchNearbySchools(lat, lng) {
         const apiKey = 'iW9ceziSt7BhDuG3FZGbuRkk09ETfoDJznAqwbcjMBw';
