@@ -8,152 +8,13 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/4.0.0/introjs.min.css">
-    <style>
-        body {
-            background-color: #f7f7f7;
-        }
-        .text-success {
-    color: green;
-}
-        .sidebar {
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 250px;
-            background-color: #3B82F6;
-            padding-top: 20px;
-            color: #fff;
-            transition: width 0.3s;
-            z-index: 1000;
-        }
-        .sidebar.collapsed {
-            width: 70px;
-        }
-        .sidebar .user-profile {
-            text-align: center;
-            padding: 15px;
-        }
-        .sidebar .user-profile img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-        }
-        .sidebar .user-profile h3,
-        .sidebar .user-profile h6 {
-            font-size: 16px;
-            margin: 5px 0;
-            color: #fff;
-        }
-        .sidebar a {
-            padding: 10px 15px;
-            text-decoration: none;
-            font-size: 18px;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .sidebar a i {
-            margin-right: 10px;
-            min-width: 20px;
-        }
-        .sidebar.collapsed a {
-            justify-content: center;
-        }
-        .sidebar.collapsed a .menu-text {
-            display: none;
-        }
-        .sidebar a:hover, .sidebar a.active {
-            background-color: #2563EB;
-            color: #fff;
-        }
-        .content {
-            margin-left: 250px;
-            padding: 20px;
-            transition: margin-left 0.3s;
-        }
-        .content.collapsed {
-            margin-left: 70px;
-        }
-        .navbar {
-            margin-left: 250px;
-            transition: margin-left 0.3s;
-        }
-        .navbar.collapsed {
-            margin-left: 70px;
-        }
-        .card {
-            margin-bottom: 20px;
-        }
-        .main-content {
-            margin-left: 250px;
-            padding: 20px;
-            transition: margin-left 0.3s;
-        }
-        .main-content.collapsed {
-            margin-left: 70px;
-        }
-        .header {
-            background-color: #007bff;
-            padding: 10px 20px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header .right a {
-            color: white;
-            margin-left: 15px;
-        }
-        .dashboard .card {
-            margin-bottom: 15px;
-        }
-        .sidebar-toggle {
-            position: absolute;
-            top: 20px;
-            left: 220px;
-            cursor: pointer;
-            z-index: 1001;
-        }
-        .sidebar.collapsed + .sidebar-toggle {
-            left: 40px;
-        }
-        .sidebar a.selected {
-            background-color: #1E3A8A;
-            color: #fff;
-        }
-        .contact-support {
-            position: absolute;
-            bottom: 20px;
-            width: 100%;
-            padding: 15px;
-            box-sizing: border-box;
-            text-align: center;
-        }
-        .contact-support p {
-            font-size: 14px;
-            color: #fff;
-            margin-bottom: 10px;
-        }
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-            }
-            .sidebar.collapsed {
-                width: 250px;
-            }
-            .content, .main-content, .navbar {
-                margin-left: 70px;
-            }
-            .sidebar-toggle {
-                left: 40px;
-            }
-            .sidebar.collapsed + .sidebar-toggle {
-                left: 220px;
-            }
-        }
-    </style>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="{% static 'js/app.js' %}"></script>
 </head>
 <body>
     <div class="sidebar" data-intro="This is the sidebar where you can navigate through different sections of the dashboard.">
@@ -163,8 +24,10 @@
             <h6>ID: {{user.id}}</h6>
         </div>
         <a href="{% url 'dashboard' %}" class="selected" data-intro="Click here to go to the Dashboard."><i class="fas fa-tachometer-alt"></i> <span class="menu-text">Dashboard</span></a>
-        <a href="#" data-intro="Click here to view Applications."><i class="fas fa-box"></i> <span class="menu-text">Applications</span></a>
-        <a href="#" data-intro="Click here to view and edit your Profile."><i class="fas fa-bullhorn"></i> <span class="menu-text">Profile</span></a>
+
+        <a href="{% url 'manage_children' %}" data-intro="Click here to Manage Children details."><i class="fa fa-child"></i> <span class="menu-text">Manage Children</span></a>
+        <a href="{% url 'parent_applications' %}" data-intro="Click here to view Applications."><i class="fas fa-box"></i> <span class="menu-text">Applications</span></a>
+        <a href="#" data-intro="Click here to view and edit your Profile."><i class="fas fa-user"></i> <span class="menu-text">Profile</span></a>
         <a href="#" data-intro="Click here to track your Applications."><i class="fas fa-calendar-alt"></i> <span class="menu-text">Track Applications</span></a>
         <div class="contact-support" data-intro="If you need any help, you can contact support here.">
             <p>Contact Support</p>
@@ -182,25 +45,79 @@
                 <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light" data-intro="This is the navigation bar where you can access notifications and your profile.">
-            <a class="navbar-brand" href="#">Admission Portal</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fas fa-bell"></i> Notifications</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fas fa-user"></i> {{ user.username }}</a>
-                    </li>
-                </ul>
+        <!-- Place common elements like cards here -->
+        <div class="common-elements">
+            {% block common_elements %}
+        <div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Total Applications</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_applications }}</h5>
+                    <p class="card-text">Number of applications submitted by your children.</p>
+                </div>
             </div>
-        </nav>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">In Progress</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ applications_in_progress }}</h5>
+                    <p class="card-text">Applications currently being processed.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Offers Received</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ applications_offer_received }}</h5>
+                    <p class="card-text">Number of offers received for your applications.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-header">Offers Accepted</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ applications_offer_accepted }}</h5>
+                    <p class="card-text">Offers that have been accepted.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+            {% endblock %}
+        </div>
+
+        <div class="notifications-section">
+    <div class="container mt-3">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                Important Notifications
+            </div>
+            <div class="card-body">
+                {% if notifications %}
+                    {% for notification in notifications %}
+                        <div class="alert alert-info">
+                            <strong>{{ notification.title }}</strong> - {{ notification.message }}
+                            <small class="text-muted">{{ notification.date|date:"F j, Y, g:i a" }}</small>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center">No new notifications at the moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
         {% block content %}
         {% endblock %}
     </div>
+
 
     <!-- Chatbot Integration -->
     <script type="text/javascript">
@@ -274,7 +191,7 @@
 
                 modalBody.append('<h5>Preferences</h5>');
                 data.preferences.forEach(function(preference, index) {
-                    modalBody.append('<p><strong>Preference ' + (index + 1) + ':</strong></p>');
+                    modalBody.append('<p><strong>Selected School ' + (index + 1) + ':</strong></p>');
                     modalBody.append('<p><strong>School Name:</strong> ' + preference.school.name + '</p>');
                     modalBody.append('<p><strong>School Address:</strong> ' + preference.school.address + '</p>');
                     modalBody.append('<p><strong>School Phone:</strong> ' + preference.school.phone + '</p>');

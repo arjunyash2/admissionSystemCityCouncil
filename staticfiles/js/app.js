@@ -1,69 +1,20 @@
-{% extends 'base.html' %}
-
-{% load static %}
-
-{% block title %}Dashboard{% endblock %}
-
-{% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <!-- Your existing dashboard cards -->
-    </div>
-    <div class="container mt-4">
-    <h2>My Children</h2>
-    <div class="row">
-        {% for item in children_with_applications %}
-            <div class="col-md-4">
-                <div class="child-card">
-                    <div class="child-profile-container">
-                        <div class="child-profile-img">
-                            <img src="{% static 'images/child_avatar.jpg' %}" alt="Child Avatar">
-                        </div>
-                        <div class="child-profile-description">
-                            <p class="child-title">{{ item.child.name }}</p>
-                            <p class="child-age">Age: {{ item.child.age }} years</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-    <a href="{% url 'manage_children' %}" class="btn btn-primary mt-4">Manage Children</a>
-</div>
-
-
-    <div class="container mt-4">
-    <h2>Nearby Schools</h2>
-    <div class="row">
-        {% for school in nearby_schools %}
-            <div class="col-md-4">
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ school.title }}</h5>
-                        <p class="card-text">{{ school.address }}</p>
-                        <p class="card-text">Distance: {{ school.distance }} meters</p>
-                        {% if school.website %}
-                            <p class="card-text">Website: <a href="{{ school.website }}" target="_blank">{{ school.website }}</a></p>
-                        {% else %}
-                            <p class="card-text">Website: Not available</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-</div>
-
-
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-
-<script>
 $(document).ready(function () {
+    $('.apply-school-btn').on('click', function () {
+        const childId = $(this).data('child-id');
+        const childName = $(this).data('child-name');
+        const childDob = $(this).data('child-dob');
+        const childNhs = $(this).data('child-nhs');
+        const childGender = $(this).data('child-gender');
+        const childAge = $(this).data('child-age');
 
+        // Set child details in the modal
+        $('#childName').text(childName);
+        $('#childDob').text(childDob);
+        $('#childAge').text(childAge);
+        $('#childNhs').text(childNhs);
+        $('#childGender').text(childGender);
+        $('#childId').val(childId);
+    });
 
     $('#nextToStep3').on('click', function () {
         const selectedSchools = [];
@@ -251,6 +202,86 @@ $(document).ready(function () {
         $('#step1').show();
     });
 
+document.addEventListener('DOMContentLoaded', function() {
+    const applySchoolBtns = document.querySelectorAll('.apply-school-btn');
+    const searchSchoolsBtn = document.getElementById('searchSchools');
+
+    applySchoolBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const childName = this.getAttribute('data-child-name');
+            const childDob = this.getAttribute('data-child-dob');
+            const childNhs = this.getAttribute('data-child-nhs');
+            const childGender = this.getAttribute('data-child-gender');
+            const childAge = this.getAttribute('data-child-age');
+            const childId = this.getAttribute('data-child-id');
+            const parentPostcode = this.getAttribute('data-parent-postcode'); // Use parent's postcode
+
+            // Fill the child details in the form
+            document.getElementById('childName').textContent = childName;
+            document.getElementById('childDob').textContent = childDob;
+            document.getElementById('childAge').textContent = childAge;
+            document.getElementById('childNhs').textContent = childNhs;
+            document.getElementById('childGender').textContent = childGender;
+            document.getElementById('childId').value = childId;
+            document.getElementById('parentPostcode').textContent = parentPostcode;
+
+            // Fetch latitude and longitude using the parent's postcode
+            fetch(`https://findthatpostcode.uk/postcodes/${parentPostcode}.json`)
+                .then(response => response.json())
+                .then(data => {
+                    const lat = data.data.attributes.location.lat;
+                    const lng = data.data.attributes.location.lon;
+
+                    // Prefill latitude and longitude fields
+                    document.getElementById('latitude').value = lat;
+                    document.getElementById('longitude').value = lng;
+
+                    // Also fill hidden fields
+                    document.getElementById('latHidden').value = lat;
+                    document.getElementById('lngHidden').value = lng;
+                })
+                .catch(error => {
+                    console.error('Error fetching location data:', error);
+                    alert('Unable to fetch location data. Please enter manually.');
+                });
+        });
+    });
+
+    searchSchoolsBtn.addEventListener('click', function(event) {
+        const latitude = document.getElementById('latitude').value;
+        const longitude = document.getElementById('longitude').value;
+
+        // Check if latitude or longitude fields are empty
+        if (!latitude || !longitude) {
+            alert('Latitude and Longitude must not be empty. Please ensure the location is filled in.');
+            event.preventDefault(); // Prevent moving to the next step if validation fails
+        } else {
+            // Proceed to the next step
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+        }
+    });
+});
+
+    searchSchoolsBtn.addEventListener('click', function(event) {
+        const latitude = document.getElementById('latitude').value;
+        const longitude = document.getElementById('longitude').value;
+
+        // Check if latitude or longitude fields are empty
+        if (!latitude || !longitude) {
+            alert('Latitude and Longitude must not be empty. Please ensure the location is filled in.');
+            event.preventDefault(); // Prevent moving to the next step if validation fails
+        } else {
+            // Proceed to the next step
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+        }
+    });
+});
+
+
+
+
 
 
     function fetchNearbySchools(lat, lng) {
@@ -288,8 +319,3 @@ $(document).ready(function () {
   modal.find('.modal-body #childNameToDelete').text(childName);
   modal.find('.modal-footer #deleteChildForm').attr('action', '{% url "delete_child" 0 %}'.replace('0', childId));
 });
-
-
-</script>
-
-{% endblock %}

@@ -25,8 +25,10 @@ class SchoolForm(forms.ModelForm):
 
 
 class ManualApplicationForm(forms.ModelForm):
+    child_id = forms.IntegerField()
+    file = forms.FileField(required=False)  # Add this field for file upload
+
     class Meta:
         model = Application
-        fields = ['preferences']
+        fields = ['preferences', 'child_id', 'file']
 
-    file = forms.FileField()

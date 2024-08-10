@@ -54,8 +54,17 @@ class Application(models.Model):
     applied_on = models.DateTimeField(auto_now_add=True)
     preferences = models.JSONField(default=list)  # Store all preferences as a JSON list
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='submitted')
-    offered_school = models.ForeignKey(School, null=True, blank=True, on_delete=models.SET_NULL, related_name='applications_offered')
+    offered_school = models.ForeignKey(School, null=True, blank=True, on_delete=models.SET_NULL,
+                                       related_name='applications_offered')
 
     def __str__(self):
         return f'{self.child.name} - Application'
 
+
+class Notification(models.Model):
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title

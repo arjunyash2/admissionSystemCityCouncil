@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}My Applications{% endblock %}
+
+{% block common_elements %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Applications</h2>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Application ID</th>
+                <th>Child Name</th>
+                <th>Submission Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for application in applications %}
+                <tr>
+                    <td>{{ application.id }}</td>
+                    <td>{{ application.child.name }}</td>
+                    <td>{{ application.applied_on|date:"F j, Y, g:i a" }}</td>
+                    <td>{{ application.get_status_display }}</td>
+                    <td>
+                        <a href="{% url 'view_application_details' application.id %}" class="btn btn-info">View</a>
+
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if not applications %}
+        <p class="text-center">No applications found.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

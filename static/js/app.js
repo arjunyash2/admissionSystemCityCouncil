@@ -1,69 +1,84 @@
-{% extends 'base.html' %}
-
-{% load static %}
-
-{% block title %}Dashboard{% endblock %}
-
-{% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <!-- Your existing dashboard cards -->
-    </div>
-    <div class="container mt-4">
-    <h2>My Children</h2>
-    <div class="row">
-        {% for item in children_with_applications %}
-            <div class="col-md-4">
-                <div class="child-card">
-                    <div class="child-profile-container">
-                        <div class="child-profile-img">
-                            <img src="{% static 'images/child_avatar.jpg' %}" alt="Child Avatar">
-                        </div>
-                        <div class="child-profile-description">
-                            <p class="child-title">{{ item.child.name }}</p>
-                            <p class="child-age">Age: {{ item.child.age }} years</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-    <a href="{% url 'manage_children' %}" class="btn btn-primary mt-4">Manage Children</a>
-</div>
-
-
-    <div class="container mt-4">
-    <h2>Nearby Schools</h2>
-    <div class="row">
-        {% for school in nearby_schools %}
-            <div class="col-md-4">
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ school.title }}</h5>
-                        <p class="card-text">{{ school.address }}</p>
-                        <p class="card-text">Distance: {{ school.distance }} meters</p>
-                        {% if school.website %}
-                            <p class="card-text">Website: <a href="{{ school.website }}" target="_blank">{{ school.website }}</a></p>
-                        {% else %}
-                            <p class="card-text">Website: Not available</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-</div>
-
-
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-
-<script>
 $(document).ready(function () {
+    function fetchNearbySchools(lat, lng) {
+        const apiKey = 'iW9ceziSt7BhDuG3FZGbuRkk09ETfoDJznAqwbcjMBw';
+        const url = `https://discover.search.hereapi.com/v1/discover?at=${lat},${lng}&q=schools&apiKey=${apiKey}`;
 
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const schoolList = document.getElementById('schoolList');
+                schoolList.innerHTML = '';
+                data.items.forEach(school => {
+                    const schoolElement = document.createElement('div');
+                    schoolElement.innerHTML = `
+                        <p><strong>${school.title}</strong></p>
+                        <p>Distance: ${school.distance} meters</p>
+                        <label><input type="checkbox" class="schoolCheckbox" value="${school.id}" data-title="${school.title}"> Select</label>
+                    `;
+                    schoolList.appendChild(schoolElement);
+                });
+            })
+            .catch(error => console.error('Error fetching nearby schools:', error));
+    }
+
+    $('.apply-school-btn').on('click', function() {
+        const childName = $(this).data('child-name');
+        const childDob = $(this).data('child-dob');
+        const childNhs = $(this).data('child-nhs');
+        const childGender = $(this).data('child-gender');
+        const childAge = $(this).data('child-age');
+        const childId = $(this).data('child-id');
+        const parentPostcode = $(this).data('parent-postcode');
+
+        // Fill the child details in the form
+        $('#childName').text(childName);
+        $('#childDob').text(childDob);
+        $('#childAge').text(childAge);
+        $('#childNhs').text(childNhs);
+        $('#childGender').text(childGender);
+        $('#childId').val(childId);
+        $('#parentPostcode').text(parentPostcode);
+
+        // Fetch latitude and longitude using the parent's postcode
+        fetch(`https://findthatpostcode.uk/postcodes/${parentPostcode}.json`)
+            .then(response => response.json())
+            .then(data => {
+                const lat = data.data.attributes.location.lat;
+                const lng = data.data.attributes.location.lon;
+
+                // Prefill latitude and longitude fields
+                $('#latitude').val(lat);
+                $('#longitude').val(lng);
+
+                // Also fill hidden fields
+                $('#latHidden').val(lat);
+                $('#lngHidden').val(lng);
+            })
+            .catch(error => {
+                console.error('Error fetching location data:', error);
+                alert('Unable to fetch location data. Please enter manually.');
+            });
+
+        // Reset the steps to start from step 1
+        $('#step1').show();
+        $('#step2').hide();
+        $('#step3').hide();
+        $('#step4').hide();
+    });
+
+    $('#searchSchools').on('click', function () {
+        const latitude = $('#latitude').val();
+        const longitude = $('#longitude').val();
+        if (!latitude || !longitude) {
+            alert('Please enter latitude and longitude.');
+            return;
+        }
+        fetchNearbySchools(latitude, longitude);
+        $('#latHidden').val(latitude);
+        $('#lngHidden').val(longitude);
+        $('#step1').hide();
+        $('#step2').show();
+    });
 
     $('#nextToStep3').on('click', function () {
         const selectedSchools = [];
@@ -211,7 +226,7 @@ $(document).ready(function () {
     $('#applySchoolForm').on('submit', function (e) {
         e.preventDefault();
 
-        var selectedSchools = [];
+        const selectedSchools = [];
         $('.schoolCheckbox:checked').each(function () {
             selectedSchools.push($(this).val());
         });
@@ -220,20 +235,6 @@ $(document).ready(function () {
         console.log('Selected School IDs:', selectedSchools);
 
         $('#applySchoolForm')[0].submit();
-    });
-
-    $('#searchSchools').on('click', function () {
-        var latitude = $('#latitude').val();
-        var longitude = $('#longitude').val();
-        if (!latitude || !longitude) {
-            alert('Please enter latitude and longitude.');
-            return;
-        }
-        fetchNearbySchools(latitude, longitude);
-        $('#latHidden').val(latitude);
-        $('#lngHidden').val(longitude);
-        $('#step1').hide();
-        $('#step2').show();
     });
 
     $('#backToStep3').on('click', function () {
@@ -252,44 +253,4 @@ $(document).ready(function () {
     });
 
 
-
-    function fetchNearbySchools(lat, lng) {
-        const apiKey = 'iW9ceziSt7BhDuG3FZGbuRkk09ETfoDJznAqwbcjMBw';
-        const url = `https://discover.search.hereapi.com/v1/discover?at=${lat},${lng}&q=schools&apiKey=${apiKey}`;
-
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                const schoolList = document.getElementById('schoolList');
-                schoolList.innerHTML = '';
-                data.items.forEach(school => {
-                    const schoolElement = document.createElement('div');
-                    schoolElement.innerHTML = `
-                        <p><strong>${school.title}</strong></p>
-                        <p>Distance: ${school.distance} meters</p>
-
-                        <label><input type="checkbox" class="schoolCheckbox" value="${school.id}" data-title="${school.title}"> Select</label>
-                    `;
-                    schoolList.appendChild(schoolElement);
-                });
-            })
-            .catch(error => console.error('Error fetching nearby schools:', error));
-    }
 });
-
-<!--Delete Child Modal    -->
-
-  $('#deleteChildModal').on('show.bs.modal', function (event) {
-  var button = $(event.relatedTarget);
-  var childId = button.data('child-id');
-  var childName = button.data('child-name');
-
-  var modal = $(this);
-  modal.find('.modal-body #childNameToDelete').text(childName);
-  modal.find('.modal-footer #deleteChildForm').attr('action', '{% url "delete_child" 0 %}'.replace('0', childId));
-});
-
-
-</script>
-
-{% endblock %}

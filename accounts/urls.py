@@ -1,4 +1,6 @@
 from django.urls import path, include
+from django.conf.urls.static import static
+from django.conf import settings
 from django.contrib.auth.views import LogoutView
 from . import views
 
@@ -10,13 +12,17 @@ urlpatterns = [
     path('register_success/', views.register_success_view, name='register_success'),
     path('add_child/', views.add_child_view, name='add_child'),
     path('dashboard/', views.child_details_view, name='dashboard'),
-    path('child_details/', views.child_details_view, name='child_details'),
+
+    # path('child_details/', views.child_details_view, name='child_details'),
+    path('manage_children/', views.manage_children, name='manage_children'),
     path('profile/', views.profile_view, name='profile'),
     path('logout/', LogoutView.as_view(next_page='/'), name='logout'),
-    path('delete_child/<int:child_id>/', views.delete_child_view, name='delete_child'),
+    path('delete_child/<int:child_id>/', views.delete_child, name='delete_child'),
     path('apply_school/', views.apply_school, name='apply_school'),
     path('application_success/<int:child_id>/', views.application_success, name='application_success'),
     path('application_tracking/<int:child_id>/', views.application_tracking, name='application_tracking'),
+    path('applications/', views.parent_applications_view, name='parent_applications'),
+
     path('download_application/<int:application_id>/', views.download_application, name='download_application'),
     path('admin/manage_applications/', views.manage_applications, name='manage_applications'),
     path('admin/view_application_details/<int:application_id>/', views.view_application_details, name='view_application_details'),
@@ -32,6 +38,6 @@ urlpatterns = [
     path('delete_application/<int:application_id>/', views.delete_application, name='delete_application'),
     path('edit_application_status/<int:application_id>/', views.edit_application_status, name='edit_application_status'),
     path('', include('django.contrib.auth.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

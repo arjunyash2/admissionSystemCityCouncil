@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.http import require_POST
 
 from .forms import CustomUserCreationForm, ChildForm, SchoolForm, ManualApplicationForm
-from .models import Child, Application, School, CustomUser
+from .models import Child, Application, School, CustomUser, Notification
 from .utils import fetch_school_details
 from datetime import date
 from django.urls import reverse
@@ -18,6 +18,7 @@ from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from django.http import JsonResponse
+import requests
 
 from PIL import Image
 from pdf2image import convert_from_path
@@ -27,7 +28,6 @@ from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from .models import Application, School
-
 
 
 
@@ -124,21 +124,14 @@ def add_child_view(request):
             child = form.save(commit=False)
             child.parent = request.user
             child.save()
-            return redirect('child_details')
+            return redirect('manage_children')
     else:
         form = ChildForm()
     return render(request, 'add_child.html', {'form': form})
 
 
-# @login_required
-# def child_details_view(request):
-#     children = Child.objects.filter(parent=request.user)
-#     for child in children:
-#         child.age = calculate_age(child.dob)
-#     return render(request, 'dashboard.html', {'children': children})
-
 @login_required
-def child_details_view(request):
+def manage_children(request):
     children = Child.objects.filter(parent=request.user)
     children_with_applications = []
     for child in children:
@@ -148,20 +141,86 @@ def child_details_view(request):
             'child': child,
             'has_application': has_application
         })
-    return render(request, 'dashboard.html', {'children_with_applications': children_with_applications})
+    return render(request, 'manage_children.html', {'children_with_applications': children_with_applications})
+@login_required
+def child_details_view(request):
+    user = request.user
+    postcode = user.postcode
+
+    # Fetch latitude and longitude using FindThatPostcode API
+    url_postcode = f"https://findthatpostcode.uk/postcodes/{postcode}.json"
+    response = requests.get(url_postcode)
+    data = response.json()
+
+    lat = data['data']['attributes']['location']['lat']
+    lng = data['data']['attributes']['location']['lon']
+
+    # Fetch nearby schools using HERE API
+    api_key = 'iW9ceziSt7BhDuG3FZGbuRkk09ETfoDJznAqwbcjMBw'  # Make sure your HERE API key is stored in settings.py
+    url_here = f'https://discover.search.hereapi.com/v1/discover?at={lat},{lng}&q=schools&limit=5&apiKey={api_key}'
+
+    response_here = requests.get(url_here)
+    schools_data = response_here.json()
+
+    nearby_schools = []
+
+    for school in schools_data.get('items', []):
+        # Initialize website as None
+        website = None
+
+        # Extract website if available
+        for contact in school.get('contacts', []):
+            for www in contact.get('www', []):
+                website = www.get('value')
+                break  # Take the first available website
+
+        nearby_schools.append({
+            'title': school['title'],
+            'address': school['address']['label'],
+            'distance': school['distance'],
+            'website': website,
+        })
+
+
+    children = Child.objects.filter(parent=request.user)
+    children_with_applications = []
+
+    total_applications = 0
+    applications_in_progress = 0
+    applications_offer_received = 0
+    applications_offer_accepted = 0
+    for child in children:
+        child.age = calculate_age(child.dob)
+        applications = Application.objects.filter(child=child)
+        has_application = Application.objects.filter(child=child).exists()
+        children_with_applications.append({
+            'child': child,
+            'has_application': has_application
+        })
+        total_applications += applications.count()
+        applications_in_progress += applications.filter(status='in_progress').count()
+        applications_offer_received += applications.filter(status='offer_received').count()
+        applications_offer_accepted += applications.filter(status='offer_accepted').count()
+
+    context = {
+        'children_with_applications': children_with_applications,
+        'total_applications': total_applications,
+        'applications_in_progress': applications_in_progress,
+        'applications_offer_received': applications_offer_received,
+        'applications_offer_accepted': applications_offer_accepted,
+        'nearby_schools': nearby_schools,  # Add nearby schools to context
+    }
+
+    return render(request, 'dashboard.html', context)
 
 
 @login_required
-def delete_child_view(request, child_id):
-    print(f"Attempting to delete child with ID: {child_id}")
+def delete_child(request, child_id):
     child = get_object_or_404(Child, id=child_id, parent=request.user)
-    if request.method == 'POST':
-        print(f"Deleting child with ID: {child.id}")
+    if request.method == "POST":
         child.delete()
-        return redirect('dashboard')
-    print(f"Delete request not POST")
-    return render(request, 'dashboard.html')
-
+        return redirect('manage_children')  # Redirect to the children management page after deletion
+    return redirect('manage_children')  # If not POST, redirect back without deleting
 
 def send_application_email(child, application_details):
     subject = 'Application Submitted'
@@ -771,3 +830,9 @@ def download_pdf_template(request):
         response = HttpResponse(pdf.read(), content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="admission_form_template.pdf"'
         return response
+
+
+@login_required
+def parent_applications_view(request):
+    applications = Application.objects.filter(child__parent=request.user).order_by('-applied_on')
+    return render(request, 'parent_applications.html', {'applications': applications})
