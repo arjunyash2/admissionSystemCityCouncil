@@ -1,19 +1,83 @@
 $(document).ready(function () {
-    $('.apply-school-btn').on('click', function () {
-        const childId = $(this).data('child-id');
+    function fetchNearbySchools(lat, lng) {
+        const apiKey = 'iW9ceziSt7BhDuG3FZGbuRkk09ETfoDJznAqwbcjMBw';
+        const url = `https://discover.search.hereapi.com/v1/discover?at=${lat},${lng}&q=schools&apiKey=${apiKey}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const schoolList = document.getElementById('schoolList');
+                schoolList.innerHTML = '';
+                data.items.forEach(school => {
+                    const schoolElement = document.createElement('div');
+                    schoolElement.innerHTML = `
+                        <p><strong>${school.title}</strong></p>
+                        <p>Distance: ${school.distance} meters</p>
+                        <label><input type="checkbox" class="schoolCheckbox" value="${school.id}" data-title="${school.title}"> Select</label>
+                    `;
+                    schoolList.appendChild(schoolElement);
+                });
+            })
+            .catch(error => console.error('Error fetching nearby schools:', error));
+    }
+
+    $('.apply-school-btn').on('click', function() {
         const childName = $(this).data('child-name');
         const childDob = $(this).data('child-dob');
         const childNhs = $(this).data('child-nhs');
         const childGender = $(this).data('child-gender');
         const childAge = $(this).data('child-age');
+        const childId = $(this).data('child-id');
+        const parentPostcode = $(this).data('parent-postcode');
 
-        // Set child details in the modal
+        // Fill the child details in the form
         $('#childName').text(childName);
         $('#childDob').text(childDob);
         $('#childAge').text(childAge);
         $('#childNhs').text(childNhs);
         $('#childGender').text(childGender);
         $('#childId').val(childId);
+        $('#parentPostcode').text(parentPostcode);
+
+        // Fetch latitude and longitude using the parent's postcode
+        fetch(`https://findthatpostcode.uk/postcodes/${parentPostcode}.json`)
+            .then(response => response.json())
+            .then(data => {
+                const lat = data.data.attributes.location.lat;
+                const lng = data.data.attributes.location.lon;
+
+                // Prefill latitude and longitude fields
+                $('#latitude').val(lat);
+                $('#longitude').val(lng);
+
+                // Also fill hidden fields
+                $('#latHidden').val(lat);
+                $('#lngHidden').val(lng);
+            })
+            .catch(error => {
+                console.error('Error fetching location data:', error);
+                alert('Unable to fetch location data. Please enter manually.');
+            });
+
+        // Reset the steps to start from step 1
+        $('#step1').show();
+        $('#step2').hide();
+        $('#step3').hide();
+        $('#step4').hide();
+    });
+
+    $('#searchSchools').on('click', function () {
+        const latitude = $('#latitude').val();
+        const longitude = $('#longitude').val();
+        if (!latitude || !longitude) {
+            alert('Please enter latitude and longitude.');
+            return;
+        }
+        fetchNearbySchools(latitude, longitude);
+        $('#latHidden').val(latitude);
+        $('#lngHidden').val(longitude);
+        $('#step1').hide();
+        $('#step2').show();
     });
 
     $('#nextToStep3').on('click', function () {
@@ -162,7 +226,7 @@ $(document).ready(function () {
     $('#applySchoolForm').on('submit', function (e) {
         e.preventDefault();
 
-        var selectedSchools = [];
+        const selectedSchools = [];
         $('.schoolCheckbox:checked').each(function () {
             selectedSchools.push($(this).val());
         });
@@ -171,20 +235,6 @@ $(document).ready(function () {
         console.log('Selected School IDs:', selectedSchools);
 
         $('#applySchoolForm')[0].submit();
-    });
-
-    $('#searchSchools').on('click', function () {
-        var latitude = $('#latitude').val();
-        var longitude = $('#longitude').val();
-        if (!latitude || !longitude) {
-            alert('Please enter latitude and longitude.');
-            return;
-        }
-        fetchNearbySchools(latitude, longitude);
-        $('#latHidden').val(latitude);
-        $('#lngHidden').val(longitude);
-        $('#step1').hide();
-        $('#step2').show();
     });
 
     $('#backToStep3').on('click', function () {
@@ -202,120 +252,12 @@ $(document).ready(function () {
         $('#step1').show();
     });
 
-document.addEventListener('DOMContentLoaded', function() {
-    const applySchoolBtns = document.querySelectorAll('.apply-school-btn');
-    const searchSchoolsBtn = document.getElementById('searchSchools');
+document.addEventListener("DOMContentLoaded", function() {
+    var sidebar = document.querySelector('.sidebar');
+    var toggleButton = document.querySelector('.menu-toggle');
 
-    applySchoolBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const childName = this.getAttribute('data-child-name');
-            const childDob = this.getAttribute('data-child-dob');
-            const childNhs = this.getAttribute('data-child-nhs');
-            const childGender = this.getAttribute('data-child-gender');
-            const childAge = this.getAttribute('data-child-age');
-            const childId = this.getAttribute('data-child-id');
-            const parentPostcode = this.getAttribute('data-parent-postcode'); // Use parent's postcode
-
-            // Fill the child details in the form
-            document.getElementById('childName').textContent = childName;
-            document.getElementById('childDob').textContent = childDob;
-            document.getElementById('childAge').textContent = childAge;
-            document.getElementById('childNhs').textContent = childNhs;
-            document.getElementById('childGender').textContent = childGender;
-            document.getElementById('childId').value = childId;
-            document.getElementById('parentPostcode').textContent = parentPostcode;
-
-            // Fetch latitude and longitude using the parent's postcode
-            fetch(`https://findthatpostcode.uk/postcodes/${parentPostcode}.json`)
-                .then(response => response.json())
-                .then(data => {
-                    const lat = data.data.attributes.location.lat;
-                    const lng = data.data.attributes.location.lon;
-
-                    // Prefill latitude and longitude fields
-                    document.getElementById('latitude').value = lat;
-                    document.getElementById('longitude').value = lng;
-
-                    // Also fill hidden fields
-                    document.getElementById('latHidden').value = lat;
-                    document.getElementById('lngHidden').value = lng;
-                })
-                .catch(error => {
-                    console.error('Error fetching location data:', error);
-                    alert('Unable to fetch location data. Please enter manually.');
-                });
-        });
-    });
-
-    searchSchoolsBtn.addEventListener('click', function(event) {
-        const latitude = document.getElementById('latitude').value;
-        const longitude = document.getElementById('longitude').value;
-
-        // Check if latitude or longitude fields are empty
-        if (!latitude || !longitude) {
-            alert('Latitude and Longitude must not be empty. Please ensure the location is filled in.');
-            event.preventDefault(); // Prevent moving to the next step if validation fails
-        } else {
-            // Proceed to the next step
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'block';
-        }
+    toggleButton.addEventListener('click', function() {
+        sidebar.classList.toggle('active');
     });
 });
-
-    searchSchoolsBtn.addEventListener('click', function(event) {
-        const latitude = document.getElementById('latitude').value;
-        const longitude = document.getElementById('longitude').value;
-
-        // Check if latitude or longitude fields are empty
-        if (!latitude || !longitude) {
-            alert('Latitude and Longitude must not be empty. Please ensure the location is filled in.');
-            event.preventDefault(); // Prevent moving to the next step if validation fails
-        } else {
-            // Proceed to the next step
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'block';
-        }
-    });
-});
-
-
-
-
-
-
-    function fetchNearbySchools(lat, lng) {
-        const apiKey = 'iW9ceziSt7BhDuG3FZGbuRkk09ETfoDJznAqwbcjMBw';
-        const url = `https://discover.search.hereapi.com/v1/discover?at=${lat},${lng}&q=schools&apiKey=${apiKey}`;
-
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                const schoolList = document.getElementById('schoolList');
-                schoolList.innerHTML = '';
-                data.items.forEach(school => {
-                    const schoolElement = document.createElement('div');
-                    schoolElement.innerHTML = `
-                        <p><strong>${school.title}</strong></p>
-                        <p>Distance: ${school.distance} meters</p>
-
-                        <label><input type="checkbox" class="schoolCheckbox" value="${school.id}" data-title="${school.title}"> Select</label>
-                    `;
-                    schoolList.appendChild(schoolElement);
-                });
-            })
-            .catch(error => console.error('Error fetching nearby schools:', error));
-    }
-});
-
-<!--Delete Child Modal    -->
-
-  $('#deleteChildModal').on('show.bs.modal', function (event) {
-  var button = $(event.relatedTarget);
-  var childId = button.data('child-id');
-  var childName = button.data('child-name');
-
-  var modal = $(this);
-  modal.find('.modal-body #childNameToDelete').text(childName);
-  modal.find('.modal-footer #deleteChildForm').attr('action', '{% url "delete_child" 0 %}'.replace('0', childId));
 });

@@ -71,6 +71,40 @@ body {
     color: #fff;
 }
 
+/* Hide sidebar by default on mobile screens */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        transition: transform 0.3s ease-in-out;
+        transform: translateY(-100%);
+    }
+
+    .sidebar.active {
+        transform: translateY(0);
+    }
+}
+
+/* Menu toggle button */
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1100;
+}
+
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+}
+
+
+
 .content {
     margin-left: 250px;
     padding: 20px;
@@ -186,20 +220,240 @@ body {
     border-bottom: none;
 }
 
-@media (max-width: 768px) {
-    .sidebar {
-        width: 70px;
+
+
+<!-- CSS for animations and modern effects -->
+
+    .animated {
+        animation-duration: 1s;
+        animation-fill-mode: both;
     }
-    .sidebar.collapsed {
-        width: 250px;
+
+    .fadeIn {
+        animation-name: fadeIn;
     }
-    .content, .main-content, .navbar {
-        margin-left: 70px;
+
+    .fadeInUp {
+        animation-name: fadeInUp;
     }
-    .sidebar-toggle {
-        left: 40px;
+
+    .zoomIn {
+        animation-name: zoomIn;
     }
-    .sidebar.collapsed + .sidebar-toggle {
-        left: 220px;
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes zoomIn {
+        from {
+            opacity: 0;
+            transform: scale(0.3);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .card {
+        transition: transform 0.3s ease;
+    }
+
+
+
+    .modal-content {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        border-bottom: none;
+    }
+
+    .modal-footer {
+        border-top: none;
+    }
+
+    .btn-primary, .btn-danger {
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .btn-primary:hover, .btn-danger:hover {
+        background-color: #0056b3;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-light:hover {
+        background-color: #e2e6ea;
+    }
+
+
+
+<!-- Manage Children -->
+/* Basic styling */
+.manage-child{
+    border-radius: 15 px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 10px 20px 0 rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover effect: Lift the card and apply a glowing border */
+.manage-child:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 0 0 2px rgba(22, 199, 154, 0.7), 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Card Image */
+.card-img {
+    border-radius: 15px 0 0 15px;
+    object-fit: cover;
+    height: 100%;
+}
+
+/* Card body */
+.card-body {
+    padding: 20px;
+}
+
+/* Card title */
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Card text */
+.card-text {
+    color: #555;
+    margin-bottom: 10px;
+}
+
+/* Button styles */
+.btn-primary {
+    background-color: #16C79A;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #13A585;
+}
+
+.btn-danger {
+    background-color: #EC4646;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-danger:hover {
+    background-color: #D13A3A;
+}
+
+/* Track Applications button */
+.btn-info {
+    background-color: #17A2B8;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+}
+
+/* Animation for the card */
+@keyframes liftCard {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-10px);
     }
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Lexend+Deca&family=Poppins:wght@400;600&display=swap');
+
+* {
+    font-family: Poppins, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #f4f4f9;
+}
+
+.container {
+    padding-top: 20px;
+}
+
+.child-card {
+    background-color: #6A7FDB;
+    border-radius: 50px;
+    margin-bottom: 15px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.child-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 0 10px rgba(22, 199, 154, 0.7);
+}
+
+.child-profile-container {
+    display: flex;
+    gap: 1em;
+    align-items: center;
+}
+
+.child-profile-img {
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    overflow: hidden;
+}
+
+.child-profile-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.child-profile-description {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.child-title {
+    color: white;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.child-age {
+    color: #4c4c55;
+    margin-top: 5px;
+}
+

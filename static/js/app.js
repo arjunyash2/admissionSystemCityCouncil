@@ -252,5 +252,12 @@ $(document).ready(function () {
         $('#step1').show();
     });
 
+document.addEventListener("DOMContentLoaded", function() {
+    var sidebar = document.querySelector('.sidebar');
+    var toggleButton = document.querySelector('.menu-toggle');
 
+    toggleButton.addEventListener('click', function() {
+        sidebar.classList.toggle('active');
+    });
+});
 });

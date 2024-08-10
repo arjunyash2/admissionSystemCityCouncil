@@ -1,74 +1,296 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Sheffield School Connect</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            background-color: #f8f9fa;
-        }
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
-        }
-        .card:hover {
-            transform: translateY(-10px);
-        }
-        .btn-animated {
-            position: relative;
-            overflow: hidden;
-            transition: color 0.4s;
-        }
-        .btn-animated::before {
-            content: '';
+    margin: 0;
+    font: normal 75% Arial, Helvetica, sans-serif;
+    overflow: hidden;
+    color: white;
+    background-image: url("{% static 'images/img.png' %}");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    height: 100vh; /* Ensure body height covers the full viewport */
+}
+
+/* Grey Overlay */
+.grey-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Grey with 50% opacity */
+    z-index: 1; /* Ensure it's above the background image but below other content */
+}
+
+        .overlay {
             position: absolute;
-            left: 50%;
-            transform: translateX(-50%) scaleY(1) scaleX(1.25);
-            top: 100%;
-            width: 140%;
-            height: 180%;
-            background-color: rgba(255, 255, 255, 0.15);
-            border-radius: 50%;
-            display: block;
-            transition: all 0.75s;
-            z-index: 0;
-        }
-        .btn-animated:hover::before {
-            top: -35%;
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-        .btn-animated::after {
-            content: '';
-            position: absolute;
-            left: 55%;
-            transform: translateX(-50%) scaleY(1) scaleX(1.45);
-            top: 180%;
-            width: 160%;
-            height: 190%;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: block;
-            transition: all 0.75s;
-            z-index: 0;
-        }
-        .btn-animated:hover::after {
-            top: -45%;
-            background-color: rgba(255, 255, 255, 0.4);
-        }
-        .btn-animated span {
-            position: relative;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(141deg, #ccc 25%, #eee 40%, #ddd 55%);
             z-index: 1;
+            opacity: 1;
+            animation: fadeOutOverlay 10s forwards; /* Fade out gradient overlay */
         }
+
+        .white-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 2;
+            opacity: 1;
+            animation: fadeOutWhiteOverlay 10s forwards; /* Fade out white overlay */
+        }
+
+        #reveal {
+            position: relative;
+            z-index: 3; /* Ensure this is above the overlays */
+            text-align: center;
+            padding-top: 40vh;
+        }
+
+        #reveal div {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 4rem; /* Increase font size */
+    font-weight: bold; /* Make the text bold */
+    line-height: 1.2; /* Adjust line height for better spacing */
+    color: #ffffff; /* Set text color to white */
+}
+#reveal div span {
+    font-size: 3rem; /* Adjust font size for "City Council" */
+}
+#reveal img {
+    display: block;
+    margin: 20px auto;
+    max-width: 200px;
+    animation: logoFade 10s forwards;
+}
+
+        #reveal div:first-of-type {
+            animation: showup 7s forwards;
+        }
+
+        #reveal div:last-of-type {
+            width: 0px;
+            animation: reveal 7s forwards;
+        }
+
+        #reveal div:last-of-type span {
+            margin-left: -355px;
+            animation: slidein 7s forwards;
+        }
+
+        #reveal img {
+            display: block;
+            margin: 20px auto;
+            max-width: 200px;
+            animation: logoFade 7s forwards;
+        }
+
+        #content {
+            display: none; /* Initially hidden */
+            opacity: 0;
+            animation: fadeIn 2s forwards;
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 2; /* Ensure this is above the overlay */
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .header-text {
+            font-size: 3rem;
+            margin-top: 20px;
+            animation: typing 3s steps(30, end), blink-caret .5s step-end infinite;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 4px solid;
+        }
+
+        .sub-text {
+            font-size: 1.5rem;
+            margin-top: 20px;
+            animation: typing 3s steps(30, end) 3s, blink-caret .5s step-end infinite 3s;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 4px solid;
+        }
+
+        .login-section .card {
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white background */
+            color: black; /* Ensure text color is visible */
+            border: none; /* Remove card borders */
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5); /* Add subtle shadow for contrast */
+        }
+
+        .login-section {
+            margin-top: 50px;
+        }
+
+        /* Position the footer text at the bottom */
+.footer-text {
+    position: absolute;
+    bottom: 20px; /* Adjust this value to give some space above the bottom edge */
+    left: 50%;
+    transform: translateX(-50%); /* Center the text horizontally */
+    font-size: 1.2rem;
+    color: white; /* Ensure the text is visible */
+    text-align: center;
+    width: 100%; /* Ensure it spans the full width */
+}
+
+
+        @keyframes fadeOutWhiteOverlay {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes fadeOutOverlay {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes showup {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes slidein {
+            0% { margin-left: -800px; }
+            20% { margin-left: -800px; }
+            35% { margin-left: 0px; }
+            100% { margin-left: 0px; }
+        }
+
+        @keyframes reveal {
+            0% { opacity: 0; width: 0px; }
+            20% { opacity: 1; width: 0px; }
+            30% { width: 355px; }
+            80% { opacity: 1; }
+            100% { opacity: 0; width: 355px; }
+        }
+
+        @keyframes logoFade {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        /* General card styling */
+.card {
+    background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white background */
+    color: black; /* Ensure text color is visible */
+    border: none; /* Remove card borders */
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow for modern look */
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease; /* Smooth transitions */
+    border-radius: 8px; /* Rounded corners */
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hover effect on cards */
+.card:hover {
+    transform: translateY(-10px) scale(1.05); /* Slightly lift and scale card */
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2); /* Deepen shadow on hover */
+    border: 2px solid #007bff; /* Add a subtle border on hover */
+}
+
+/* Card border animation */
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    border: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.card:hover::before {
+    border-color: rgba(0, 123, 255, 0.5); /* Border color on hover */
+    transform: scale(1.05); /* Scale up the border */
+}
+
+/* Button animations */
+.btn-animated {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    transition: color 0.4s ease;
+}
+
+.btn-animated::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300%;
+    height: 300%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all 0.5s ease;
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    z-index: -1;
+}
+
+.btn-animated:hover::before {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.btn-animated:hover {
+    color: white; /* Change text color on hover */
+}
+
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center">Welcome to Sheffield School Connect</h1>
-        <div class="row mt-4">
+<div class="grey-overlay"></div>
+    <!-- White Overlay -->
+    <div class="white-overlay"></div>
+
+    <!-- Gradient Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Reveal Animation -->
+    <div id="reveal">
+        <div>Sheffield</div>
+        <div><span>City Council</span></div>
+        <img src="{% static 'images/SheffieldCityCouncilLogo.svg.png' %}" alt="Sheffield City Council Logo">
+    </div>
+
+    <!-- Main content -->
+    <div id="content" class="content-wrapper">
+        <div class="header-text">Sheffield City Council</div>
+        <div class="sub-text">Apply for a School Place</div>
+
+        <div class="row mt-4 login-section justify-content-center">
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body text-center">
@@ -97,10 +319,19 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    </div>
+<div class="footer-text">A Dissertation Project by Parvathy Mohan</div>
+
+    <script>
+        // Wait for the reveal animation to finish
+        setTimeout(() => {
+            // Hide the reveal section
+            document.getElementById('reveal').style.display = 'none';
+            // Show the content section with fadeIn effect
+            document.getElementById('content').style.display = 'block';
+        }, 7000); // Matches the duration of the animation
+    </script>
 </body>
 </html>

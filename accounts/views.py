@@ -74,7 +74,7 @@ def login_view(request):
             if otp == user.otp:
                 authenticate(request, username=username, password=password)
                 login(request, user)
-                return redirect('child_details')
+                return redirect('dashboard')
             else:
                 return render(request, 'login.html',
                               {'otp_sent': True, 'error': 'Invalid OTP', 'username': username, 'password': password})

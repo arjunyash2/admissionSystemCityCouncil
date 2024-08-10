@@ -71,6 +71,40 @@ body {
     color: #fff;
 }
 
+/* Hide sidebar by default on mobile screens */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        transition: transform 0.3s ease-in-out;
+        transform: translateY(-100%);
+    }
+
+    .sidebar.active {
+        transform: translateY(0);
+    }
+}
+
+/* Menu toggle button */
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1100;
+}
+
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+}
+
+
+
 .content {
     margin-left: 250px;
     padding: 20px;
@@ -186,23 +220,7 @@ body {
     border-bottom: none;
 }
 
-@media (max-width: 768px) {
-    .sidebar {
-        width: 70px;
-    }
-    .sidebar.collapsed {
-        width: 250px;
-    }
-    .content, .main-content, .navbar {
-        margin-left: 70px;
-    }
-    .sidebar-toggle {
-        left: 40px;
-    }
-    .sidebar.collapsed + .sidebar-toggle {
-        left: 220px;
-    }
-}
+
 
 <!-- CSS for animations and modern effects -->
 
