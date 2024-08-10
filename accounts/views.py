@@ -377,6 +377,7 @@ def application_tracking(request, child_id):
 
 @require_http_methods(["GET"])
 def view_application_details(request, application_id):
+
     try:
         application = get_object_or_404(Application, id=application_id)
         print(application)

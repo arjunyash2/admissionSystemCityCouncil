@@ -28,13 +28,49 @@
                     <td>{{ application.applied_on|date:"F j, Y, g:i a" }}</td>
                     <td>{{ application.get_status_display }}</td>
                     <td>
-                        <a href="{% url 'view_application_details' application.id %}" class="btn btn-info">View</a>
 
+                        <button class="btn btn-info view-application-btn" data-application-id="{{ application.id }}">View</button>
                     </td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
+    <!-- Application Details Modal -->
+<div class="modal fade" id="applicationDetailsModal" tabindex="-1" aria-labelledby="applicationDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="applicationDetailsModalLabel">Application Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="applicationDetailsContent">
+                    <!-- Application details will be loaded here via AJAX -->
+                </div>
+                {% if user.is_staff %}
+                <form id="edit-application-form" style="display:none;">
+                    {% csrf_token %}
+                    <input type="hidden" id="application-id" name="application_id">
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select class="form-control" id="status" name="status">
+                            <option value="submitted">Application Submitted</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="offer_received">Offer Received</option>
+                            <option value="offer_accepted">Offer Accepted</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
     {% if not applications %}
         <p class="text-center">No applications found.</p>
     {% endif %}
