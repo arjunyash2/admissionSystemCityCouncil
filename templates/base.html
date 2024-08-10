@@ -26,14 +26,14 @@
             <h3>{{ user.forename }}</h3>
             <h6>ID: {{user.id}}</h6>
         </div>
-        <a href="{% url 'manage_applications' %}" class="selected" data-intro="Click here to go to the Dashboard."
+
    {% if user.is_superuser %}
-      {% url 'manage_applications' %}
+      <a href="{% url 'manage_applications' %}" class="selected" data-intro="Click here to go to the Dashboard."><i class="fas fa-tachometer-alt"></i><span class="menu-text">Dashboard</span></a>
    {% else %}
-      {% url 'dashboard' %}
-   {% endif %}>
-   <i class="fas fa-tachometer-alt"></i> <span class="menu-text">Dashboard</span>
-</a>
+        <a href="{% url 'dashboard' %}" class="selected" data-intro="Click here to go to the Dashboard."><i class="fas fa-tachometer-alt"></i><span class="menu-text">Dashboard</span></a>
+   {% endif %}
+
+
         <a href="{% url 'manage_children' %}" data-intro="Click here to Manage Children details."><i class="fa fa-child"></i> <span class="menu-text">Manage Children</span></a>
         <a href="{% url 'parent_applications' %}" data-intro="Click here to view Applications."><i class="fas fa-box"></i> <span class="menu-text">Applications</span></a>
         <a href="#" data-intro="Click here to view and edit your Profile."><i class="fas fa-user"></i> <span class="menu-text">Profile</span></a>
