@@ -102,7 +102,7 @@ $(document).ready(function () {
         selectedSchools.forEach((school, index) => {
             $('#selectedSchools').append(`
                 <div class="form-group">
-                    <label for="preference${index}">Preference ${index + 1}: ${school.title}</label>
+                    <label for="preference${index}" class="school-title-label" data-school-title="${school.title}">Selected School ${index + 1}: ${school.title}</label>
                     <select class="form-control" id="preference${index}" name="preferences[]">
                         <option value="1">1</option>
                         <option value="2">2</option>
@@ -159,9 +159,10 @@ $(document).ready(function () {
         let hasPreferences = false;
 
         $('#selectedSchools .form-group').each(function (index) {
-            const schoolTitle = $(this).find('label').text().split(': ')[1];
+            const schoolTitle = $(this).find('.school-title-label').data('school-title');
             const preferenceValue = $(this).find('select').val();
             const siblingCheckbox = $(this).find('.sibling-checkbox').is(':checked');
+            console.log(schoolTitle);
 
             if (schoolTitle && preferenceValue) {
                 hasPreferences = true;
@@ -196,8 +197,9 @@ $(document).ready(function () {
 
                 $('#confirmationPreferences').append(`
                     <div>
-                        <p><strong>Preference ${index + 1}:</strong> ${schoolTitle}</p>
+                        <p><strong>Selected School :</strong> ${schoolTitle}</p>
                         <p><strong>Preference Value:</strong> ${preferenceValue}</p>
+
                         ${siblingDetails}
                     </div>
                 `);

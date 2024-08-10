@@ -102,7 +102,7 @@ $(document).ready(function () {
         selectedSchools.forEach((school, index) => {
             $('#selectedSchools').append(`
                 <div class="form-group">
-                    <label for="preference${index}">Preference ${index + 1}: ${school.title}</label>
+                    <label for="preference${index}">School ${index + 1}: ${school.title}</label>
                     <select class="form-control" id="preference${index}" name="preferences[]">
                         <option value="1">1</option>
                         <option value="2">2</option>
@@ -196,7 +196,7 @@ $(document).ready(function () {
 
                 $('#confirmationPreferences').append(`
                     <div>
-                        <p><strong>Preference ${index + 1}:</strong> ${schoolTitle}</p>
+                        <p><strong>Selected School Number ${index + 1}:</strong> ${schoolTitle}</p>
                         <p><strong>Preference Value:</strong> ${preferenceValue}</p>
                         ${siblingDetails}
                     </div>
