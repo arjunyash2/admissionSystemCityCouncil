@@ -19,6 +19,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from django.http import JsonResponse
 import requests
+from django.db.models import Count
 
 from PIL import Image
 from pdf2image import convert_from_path
@@ -565,7 +566,91 @@ def is_admin(user):
 def manage_applications(request):
     applications = Application.objects.all()
     return render(request, 'admin/manage_applications.html', {'applications': applications})
+from collections import defaultdict
 
+def admin_dashboard(request):
+    # Basic Counts
+    total_applications = Application.objects.count()
+    total_children = Child.objects.count()
+    total_applications_in_progress = Application.objects.filter(status='in_progress').count()
+    total_offers_accepted = Application.objects.filter(status='offer_accepted').count()
+
+    # Applications by Status
+    submitted_count = Application.objects.filter(status='submitted').count()
+    in_progress_count = Application.objects.filter(status='in_progress').count()
+    offer_received_count = Application.objects.filter(status='offer_received').count()
+    offer_accepted_count = Application.objects.filter(status='offer_accepted').count()
+
+    # Applications Over Time
+    applications_over_time = (
+        Application.objects
+        .extra(select={'day': 'date(applied_on)'})
+        .values('day')
+        .annotate(count=Count('id'))
+        .order_by('day')
+    )
+    applications_over_time_dates = [entry['day'] for entry in applications_over_time]
+    applications_over_time_counts = [entry['count'] for entry in applications_over_time]
+
+    # Gender Distribution
+    male_count = Child.objects.filter(gender='Male').count()
+    female_count = Child.objects.filter(gender='Female').count()
+
+    # Age Distribution
+    children = Child.objects.all()
+    age_distribution = {}
+    for child in children:
+        age = calculate_age(child.dob)
+        if age not in age_distribution:
+            age_distribution[age] = 0
+        age_distribution[age] += 1
+    age_distribution_labels = list(age_distribution.keys())
+    age_distribution_counts = list(age_distribution.values())
+
+    # School Preference Trends
+    school_preference_counts = defaultdict(int)
+    applications = Application.objects.all()
+
+    for application in applications:
+        preferences = application.preferences
+        for preference in preferences:
+            school_id = preference['school']['id']
+            school_preference_counts[school_id] += 1
+
+    total_preferences = sum(school_preference_counts.values())
+    school_preference_data = []
+
+    for school_id, count in school_preference_counts.items():
+        school = School.objects.get(id=school_id)
+        percentage = (count / total_preferences) * 100
+        school_preference_data.append({
+            'name': school.name,
+            'count': count,
+            'percentage': round(percentage, 2),
+        })
+
+    # Sort the school preference data by count in descending order
+    school_preference_data.sort(key=lambda x: x['count'], reverse=True)
+
+    context = {
+        'total_applications': total_applications,
+        'total_children': total_children,
+        'total_applications_in_progress': total_applications_in_progress,
+        'total_offers_accepted': total_offers_accepted,
+        'submitted_count': submitted_count,
+        'in_progress_count': in_progress_count,
+        'offer_received_count': offer_received_count,
+        'offer_accepted_count': offer_accepted_count,
+        'applications_over_time_dates': applications_over_time_dates,
+        'applications_over_time_counts': applications_over_time_counts,
+        'male_count': male_count,
+        'female_count': female_count,
+        'age_distribution_labels': age_distribution_labels,
+        'age_distribution_counts': age_distribution_counts,
+        'school_preference_data': school_preference_data,  # Pass the combined data as a list of dicts
+    }
+
+    return render(request, 'admin/admin_dashboard.html', context)
 
 # @login_required
 # def view_application_details(request, application_id):
@@ -757,7 +842,7 @@ def confirm_manual_application(request):
             preferences=all_preferences
         )
 
-        return redirect('admin/manage_applications')
+        return redirect('admin_dashboard')
 
     return render(request, 'admin/confirm_manual_application.html', {
         'child_data': child_data,
@@ -799,7 +884,7 @@ def admin_login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None and user.is_admin:
             login(request, user)
-            return redirect(reverse('manage_applications'))  # Redirect to the admin dashboard
+            return redirect(reverse('admin_dashboard'))  # Redirect to the admin dashboard
         else:
             return render(request, 'admin_login.html', {'error': 'Invalid username or password'})
     return render(request, 'admin_login.html')
@@ -821,3 +906,14 @@ def download_pdf_template(request):
 def parent_applications_view(request):
     applications = Application.objects.filter(child__parent=request.user).order_by('-applied_on')
     return render(request, 'parent_applications.html', {'applications': applications})
+
+
+def admin_manage_children(request):
+    if not request.user.is_superuser:
+        return redirect('login')  # or wherever you'd like to redirect non-admins
+
+    children = Child.objects.all()
+    context = {
+        'children': children
+    }
+    return render(request, 'admin/admin_manage_children.html', context)

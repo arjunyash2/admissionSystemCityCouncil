@@ -1,0 +1,209 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block common_elements %}
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Existing cards for statistics -->
+            <div class="col-md-3">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-header">Total Applications</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ total_applications }}</h5>
+                        <p class="card-text">Number of applications submitted by all users.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning mb-3">
+                    <div class="card-header">Total Children</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ total_children }}</h5>
+                        <p class="card-text">Total number of children in the database.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-header">In Progress</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ total_applications_in_progress }}</h5>
+                        <p class="card-text">Applications currently being processed.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-header">Offers Accepted</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ total_offers_accepted }}</h5>
+                        <p class="card-text">Total number of offers accepted.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Applications by Status</div>
+                    <div class="card-body">
+                        <canvas id="applicationsByStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Gender Distribution</div>
+                    <div class="card-body">
+                        <canvas id="genderDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Age Distribution</div>
+                    <div class="card-body">
+                        <canvas id="ageDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Applications Over Time</div>
+                    <div class="card-body">
+                        <canvas id="applicationsOverTimeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- New Section: School Preference Trends as Table -->
+        <!-- New Section: School Preference Trends as Table -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">School Preference Trends</div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>School Name</th>
+                            <th>Number of Applications</th>
+                            <th>Percentage of Applications (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for school in school_preference_data %}
+                        <tr>
+                            <td>{{ school.name }}</td>
+                            <td>{{ school.count }}</td>
+                            <td>{{ school.percentage }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const chartAnimationOptions = {
+        animation: {
+            duration: 1500,
+            easing: 'easeInOutQuad'
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+    };
+
+    // Applications by Status Chart
+    const ctx1 = document.getElementById('applicationsByStatusChart').getContext('2d');
+    const applicationsByStatusChart = new Chart(ctx1, {
+        type: 'pie',
+        data: {
+            labels: ['Submitted', 'In Progress', 'Offer Received', 'Offer Accepted'],
+            datasets: [{
+                data: [{{ submitted_count }}, {{ in_progress_count }}, {{ offer_received_count }}, {{ offer_accepted_count }}],
+                backgroundColor: ['#007bff', '#ffc107', '#17a2b8', '#28a745']
+            }]
+        },
+        options: chartAnimationOptions
+    });
+
+    // Applications Over Time Chart
+    const ctx2 = document.getElementById('applicationsOverTimeChart').getContext('2d');
+    const applicationsOverTimeChart = new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: {{ applications_over_time_dates | safe }},
+            datasets: [{
+                label: 'Applications Over Time',
+                data: {{ applications_over_time_counts | safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                fill: true
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            ...chartAnimationOptions
+        }
+    });
+
+    // Gender Distribution Chart
+    const ctx3 = document.getElementById('genderDistributionChart').getContext('2d');
+    const genderDistributionChart = new Chart(ctx3, {
+        type: 'pie',
+        data: {
+            labels: ['Male', 'Female'],
+            datasets: [{
+                data: [{{ male_count }}, {{ female_count }}],
+                backgroundColor: ['#36a2eb', '#ff6384']
+            }]
+        },
+        options: chartAnimationOptions
+    });
+
+    // Age Distribution Chart
+    const ctx4 = document.getElementById('ageDistributionChart').getContext('2d');
+    const ageDistributionChart = new Chart(ctx4, {
+        type: 'bar',
+        data: {
+            labels: {{ age_distribution_labels | safe }},
+            datasets: [{
+                label: 'Age Distribution',
+                data: {{ age_distribution_counts | safe }},
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            ...chartAnimationOptions
+        }
+    });
+</script>
+{% endblock %}

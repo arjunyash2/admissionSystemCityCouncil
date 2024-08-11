@@ -23,8 +23,11 @@ urlpatterns = [
     path('application_tracking/<int:child_id>/', views.application_tracking, name='application_tracking'),
     path('applications/', views.parent_applications_view, name='parent_applications'),
 
+    path('admin/admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('download_application/<int:application_id>/', views.download_application, name='download_application'),
     path('admin/manage_applications/', views.manage_applications, name='manage_applications'),
+    path('admin/manage_children/', views.admin_manage_children, name='admin_manage_children'),
+
     path('admin/view_application_details/<int:application_id>/', views.view_application_details, name='view_application_details'),
     path('admin/add_manual_application/', views.add_manual_application, name='add_manual_application'),
     path('admin/manage_schools/', views.manage_schools, name='manage_schools'),

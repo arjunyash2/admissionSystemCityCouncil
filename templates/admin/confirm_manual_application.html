@@ -1,15 +1,15 @@
-{% extends 'base.html' %}
+{% extends 'admin/admin_base.html' %}
 
 {% load static %}
 {% block title %}Confirm Manual Application{% endblock %}
-
+{% block common_elements %}
+{% endblock %}
 {% block content %}
 <div class="container">
     <h1>Confirm Manual Application</h1>
     <form id="manualApplicationForm" method="post" action="{% url 'confirm_manual_application' %}">
         {% csrf_token %}
         <input type="hidden" name="child_id" value="{{ child_data.child_id }}">
-        <input type="hidden" name="preferences" value="{{ preferences|json_script:'preferences' }}">
 
         <h3>Parent Details</h3>
         <p>Email: {{ parent_data.email }}</p>
