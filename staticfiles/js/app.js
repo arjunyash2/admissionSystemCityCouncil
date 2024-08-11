@@ -102,7 +102,7 @@ $(document).ready(function () {
         selectedSchools.forEach((school, index) => {
             $('#selectedSchools').append(`
                 <div class="form-group">
-                    <label for="preference${index}">School ${index + 1}: ${school.title}</label>
+                    <label for="preference${index}" class="school-title-label" data-school-title="${school.title}">Selected School ${index + 1}: ${school.title}</label>
                     <select class="form-control" id="preference${index}" name="preferences[]">
                         <option value="1">1</option>
                         <option value="2">2</option>
@@ -159,9 +159,10 @@ $(document).ready(function () {
         let hasPreferences = false;
 
         $('#selectedSchools .form-group').each(function (index) {
-            const schoolTitle = $(this).find('label').text().split(': ')[1];
+            const schoolTitle = $(this).find('.school-title-label').data('school-title');
             const preferenceValue = $(this).find('select').val();
             const siblingCheckbox = $(this).find('.sibling-checkbox').is(':checked');
+            console.log(schoolTitle);
 
             if (schoolTitle && preferenceValue) {
                 hasPreferences = true;
@@ -196,8 +197,9 @@ $(document).ready(function () {
 
                 $('#confirmationPreferences').append(`
                     <div>
-                        <p><strong>Selected School Number ${index + 1}:</strong> ${schoolTitle}</p>
+                        <p><strong>Selected School :</strong> ${schoolTitle}</p>
                         <p><strong>Preference Value:</strong> ${preferenceValue}</p>
+
                         ${siblingDetails}
                     </div>
                 `);
@@ -260,4 +262,67 @@ document.addEventListener("DOMContentLoaded", function() {
         sidebar.classList.toggle('active');
     });
 });
+});
+ $(document).ready(function() {
+    // View application details
+    $('.view-application-btn').on('click', function() {
+        var applicationId = $(this).data('application-id');
+        $('#edit-application-form').hide();
+        $('#applicationDetailsContent').show();
+        $.ajax({
+            url: '{% url "view_application_details" 0 %}'.replace('0', applicationId),
+            method: 'GET',
+            success: function(data) {
+                var modalBody = $('#applicationDetailsModal .modal-body #applicationDetailsContent');
+                modalBody.empty();
+                modalBody.append('<p><strong>Application ID:</strong> ' + data.application_id + '</p>');
+                modalBody.append('<p><strong>Child Name:</strong> ' + data.child_name + '</p>');
+                modalBody.append('<p><strong>Child Date of Birth:</strong> ' + data.child_dob + '</p>');
+                modalBody.append('<p><strong>Child Age:</strong> ' + data.child_age + '</p>');
+                modalBody.append('<p><strong>Child NHS Number:</strong> ' + data.child_nhs_number + '</p>');
+                modalBody.append('<p><strong>Child Gender:</strong> ' + data.child_gender + '</p>');
+                modalBody.append('<p><strong>Parent Name:</strong> ' + data.parent_name + '</p>');
+                modalBody.append('<p><strong>Parent Email:</strong> ' + data.parent_email + '</p>');
+                modalBody.append('<p><strong>Parent Phone:</strong> ' + data.parent_phone + '</p>');
+                modalBody.append('<p><strong>Applied On:</strong> ' + data.applied_on + '</p>');
+
+                // Highlight status in green if offer_received
+                if (data.status === 'offer_received') {
+                    modalBody.append('<p><strong>Status:</strong> <span class="text-success">' + data.status + '</span></p>');
+                } else {
+                    modalBody.append('<p><strong>Status:</strong> ' + data.status + '</p>');
+                }
+
+                // Highlight offered school in green if not None
+                if (data.offered_school_name) {
+                    modalBody.append('<p><strong>Offered School:</strong> <span class="text-success">' + data.offered_school_name + '</span></p>');
+                } else {
+                    modalBody.append('<p><strong>Offered School:</strong> None</p>');
+                }
+
+                modalBody.append('<h5>Preferences</h5>');
+                data.preferences.forEach(function(preference, index) {
+                    modalBody.append('<p><strong>Selected School ' + (index + 1) + ':</strong></p>');
+                    modalBody.append('<p><strong>School Name:</strong> ' + preference.school.name + '</p>');
+                    modalBody.append('<p><strong>School Address:</strong> ' + preference.school.address + '</p>');
+                    modalBody.append('<p><strong>School Phone:</strong> ' + preference.school.phone + '</p>');
+                    modalBody.append('<p><strong>School Website:</strong> <a href="' + preference.school.website + '">' + preference.school.website + '</a></p>');
+                    modalBody.append('<p><strong>School Email:</strong> ' + preference.school.email + '</p>');
+                    modalBody.append('<p><strong>Preference:</strong> ' + preference.preference + '</p>');
+                    if (preference.siblings.length > 0) {
+                        modalBody.append('<h6>Siblings:</h6>');
+                        preference.siblings.forEach(function(sibling) {
+                            modalBody.append('<p>Name: ' + sibling.name + '</p>');
+                            modalBody.append('<p>Date of Birth: ' + sibling.dob + '</p>');
+                            modalBody.append('<p>Year Group: ' + sibling.year_group + '</p>');
+                        });
+                    }
+                });
+                $('#applicationDetailsModal').modal('show');
+            },
+            error: function(error) {
+                console.error('Error fetching application details:', error);
+            }
+        });
+    });
 });

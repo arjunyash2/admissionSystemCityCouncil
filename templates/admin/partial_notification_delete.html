@@ -1,0 +1,6 @@
+<form method="post" class="js-notification-delete-form">
+    {% csrf_token %}
+    <p>Are you sure you want to delete the notification titled "{{ notification.title }}"?</p>
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+</form>

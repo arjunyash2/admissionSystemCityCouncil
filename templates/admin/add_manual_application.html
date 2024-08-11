@@ -58,8 +58,9 @@ document.getElementById('manualApplicationForm').addEventListener('submit', func
         // Hide the loading screen
         document.getElementById('loadingScreen').style.display = 'none';
 
-        // Populate the modal with extracted data
-        const extractedData = {{ extracted_data|safe }};
+        // Retrieve the extracted data passed to the template
+        const extractedData = {{ extracted_data|default_if_none:"null"|safe }};
+
         let modalContent = '';
 
         if (extractedData) {
@@ -101,5 +102,6 @@ document.getElementById('confirmSubmit').addEventListener('click', function () {
     // Submit the form when the Confirm and Submit button is clicked
     document.getElementById('manualApplicationForm').submit();
 });
+
 </script>
 {% endblock %}

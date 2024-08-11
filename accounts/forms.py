@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser, Child, School, Application
+from .models import CustomUser, Child, School, Application, Notification
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -29,3 +29,9 @@ class ManualApplicationForm(forms.Form):
         label='Upload a file (PDF or Image)',
         help_text='Supported formats: .pdf, .jpg, .jpeg, .png'
     )
+
+
+class NotificationForm(forms.ModelForm):
+    class Meta:
+        model = Notification
+        fields = ['title', 'message']

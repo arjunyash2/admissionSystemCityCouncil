@@ -40,6 +40,13 @@ urlpatterns = [
     path('view_application_details/<int:application_id>/', views.view_application_details, name='view_application_details'),
     path('delete_application/<int:application_id>/', views.delete_application, name='delete_application'),
     path('edit_application_status/<int:application_id>/', views.edit_application_status, name='edit_application_status'),
+
+    path('notifications/', views.notification_list, name='notification_list'),
+    path('notifications/create/', views.notification_create, name='notification_create'),
+    path('notifications/update/<int:pk>/', views.notification_update, name='notification_update'),
+    path('notifications/delete/<int:pk>/', views.notification_delete, name='notification_delete'),
+
+
     path('', include('django.contrib.auth.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

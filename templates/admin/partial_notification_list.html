@@ -1,0 +1,23 @@
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Message</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for notification in notifications %}
+        <tr>
+            <td>{{ notification.title }}</td>
+            <td>{{ notification.message|truncatewords:20 }}</td>
+            <td>{{ notification.date }}</td>
+            <td>
+                <button class="btn btn-primary btn-sm js-update-notification" data-url="{% url 'update_notification' notification.pk %}">Edit</button>
+                <button class="btn btn-danger btn-sm js-delete-notification" data-url="{% url 'delete_notification' notification.pk %}">Delete</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

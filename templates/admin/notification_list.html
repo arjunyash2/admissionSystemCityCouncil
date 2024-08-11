@@ -1,0 +1,131 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Manage Notifications{% endblock %}
+{% block common_elements %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Manage Notifications</h1>
+
+    <!-- Button to trigger the modal for creating a new notification -->
+    <button id="btnAddNotification" class="btn btn-success mb-3" data-toggle="modal" data-target="#modalCreateNotification">Add New Notification</button>
+
+    <!-- Notifications Table -->
+    <div id="notificationTable">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Message</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for notification in notifications %}
+                <tr>
+                    <td>{{ notification.title }}</td>
+                    <td>{{ notification.message|truncatewords:20 }}</td>
+                    <td>{{ notification.date }}</td>
+                    <td>
+                        <!-- Edit Button triggers the Update Modal -->
+                        <a href="{% url 'notification_update' notification.pk %}" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalUpdateNotification{{ notification.pk }}">Edit</a>
+
+                        <!-- Delete Button triggers the Delete Modal -->
+                        <a href="{% url 'notification_delete' notification.pk %}" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#modalDeleteNotification{{ notification.pk }}">Delete</a>
+                    </td>
+                </tr>
+
+                <!-- Modal for Update Notification -->
+                <div class="modal fade" id="modalUpdateNotification{{ notification.pk }}" tabindex="-1" role="dialog" aria-labelledby="modalUpdateNotificationLabel{{ notification.pk }}" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalUpdateNotificationLabel{{ notification.pk }}">Update Notification</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- Update Form -->
+                                <form method="post" action="{% url 'notification_update' notification.pk %}">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label for="id_title_{{ notification.pk }}">Title</label>
+                                        <input type="text" class="form-control" id="id_title_{{ notification.pk }}" name="title" value="{{ notification.title }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="id_message_{{ notification.pk }}">Message</label>
+                                        <textarea class="form-control" id="id_message_{{ notification.pk }}" name="message" required>{{ notification.message }}</textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-success">Update</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal for Delete Notification -->
+                <div class="modal fade" id="modalDeleteNotification{{ notification.pk }}" tabindex="-1" role="dialog" aria-labelledby="modalDeleteNotificationLabel{{ notification.pk }}" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalDeleteNotificationLabel{{ notification.pk }}">Delete Notification</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to delete the notification titled "{{ notification.title }}"?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <form method="post" action="{% url 'notification_delete' notification.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal for Create Notification -->
+<div class="modal fade" id="modalCreateNotification" tabindex="-1" role="dialog" aria-labelledby="modalCreateNotificationLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCreateNotificationLabel">Create Notification</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Create Form -->
+                <form method="post" action="{% url 'notification_create' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_title">Title</label>
+                        <input type="text" class="form-control" id="id_title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_message">Message</label>
+                        <textarea class="form-control" id="id_message" name="message" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+{% endblock %}

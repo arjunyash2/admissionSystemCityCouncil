@@ -7,7 +7,7 @@ from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.http import require_POST
 
-from .forms import CustomUserCreationForm, ChildForm, SchoolForm, ManualApplicationForm
+from .forms import CustomUserCreationForm, ChildForm, SchoolForm, ManualApplicationForm, NotificationForm
 from .models import Child, Application, School, CustomUser, Notification
 from .utils import fetch_school_details, extract_text_from_pdf
 from datetime import date
@@ -842,3 +842,48 @@ def admin_manage_children(request):
         'children': children
     }
     return render(request, 'admin/admin_manage_children.html', context)
+
+
+# Notifications View
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+
+@login_required
+@user_passes_test(is_admin)
+def notification_list(request):
+    notifications = Notification.objects.all().order_by('-date')
+    return render(request, 'admin/notification_list.html', {'notifications': notifications})
+@login_required
+@user_passes_test(is_admin)
+def notification_create(request):
+    if request.method == 'POST':
+        form = NotificationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('notification_list')  # Redirect to the notification list after saving
+    else:
+        form = NotificationForm()  # Initialize an empty form for GET requests
+
+    return render(request, 'admin/notification_form.html', {'form': form})
+@login_required
+@user_passes_test(is_admin)
+def notification_update(request, pk):
+    notification = get_object_or_404(Notification, pk=pk)
+    if request.method == 'POST':
+        form = NotificationForm(request.POST, instance=notification)
+        if form.is_valid():
+            form.save()
+            return redirect('notification_list')  # Redirect to the list after saving the update
+    else:
+        form = NotificationForm(instance=notification)  # Prepopulate the form with the existing notification data
+
+    return render(request, 'admin/notification_form.html', {'form': form})
+@login_required
+@user_passes_test(is_admin)
+def notification_delete(request, pk):
+    notification = get_object_or_404(Notification, pk=pk)
+    if request.method == 'POST':
+        notification.delete()
+        return redirect('notification_list')  # Redirect to the list after deletion
+
+    return render(request, 'admin/notification_confirm_delete.html', {'notification': notification})
