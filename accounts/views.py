@@ -715,14 +715,16 @@ def add_manual_application(request):
             # Store the extracted data in the session for further confirmation
             request.session['extracted_data'] = extracted_data
 
-            return redirect('confirm_manual_application')
+            # Redirect back to the same page to display the modal with extracted data
+            return redirect('add_manual_application')
 
     else:
         form = ManualApplicationForm()
+        extracted_data = request.session.get('extracted_data', None)  # Retrieve extracted data from the session
 
     return render(request, 'admin/add_manual_application.html', {
         'form': form,
-        'extracted_data': extracted_data
+        'extracted_data': extracted_data  # Pass extracted data to the template
     })
 
 def generate_unique_child_id():
@@ -733,116 +735,39 @@ def generate_unique_child_id():
         return 1
 
 
-def parse_application_text(text):
-    # Extract details using regular expressions
-    parent_email = re.search(r'Email Address:\s*(.*)', text).group(1)
-    parent_title = re.search(r'Title \(Mr/Mrs\):\s*(.*)', text).group(1)
-    parent_forename = re.search(r'Forename:\s*(.*)', text).group(1)
-    parent_surname = re.search(r'Surname:\s*(.*)', text).group(1)
-    parent_sex = re.search(r'Sex \(Male/Female\):\s*(.*)', text).group(1)
-    parent_address = re.search(r'Address:\s*(.*)', text).group(1)
-    parent_phone = re.search(r'Phone Number:\s*(.*)', text).group(1)
-
-    child_name = re.search(r'Name:\s*(.*)', text).group(1)
-    child_dob = re.search(r'Date of Birth:\s*(.*)', text).group(1)
-    child_gender = re.search(r'Gender:\s*(.*)', text).group(1)
-    child_nhs = re.search(r'NHS Number:\s*(.*)', text).group(1)
-
-    preferences = []
-    for i in range(1, 4):
-        school_name = re.search(rf'School {i} Name:\s*(.*)', text).group(1)
-        sibling_name = re.search(rf'Sibling {i} Name:\s*(.*)', text).group(1)
-        sibling_dob = re.search(rf'Sibling {i} Date of Birth:\s*(.*)', text).group(1)
-        sibling_year_group = re.search(rf'Sibling {i} Year Group:\s*(.*)', text).group(1)
-        preferences.append({
-            'school_name': school_name,
-            'sibling_name': sibling_name,
-            'sibling_dob': sibling_dob,
-            'sibling_year_group': sibling_year_group
-        })
-
-    return {
-        'parent_email': parent_email,
-        'parent_title': parent_title,
-        'parent_forename': parent_forename,
-        'parent_surname': parent_surname,
-        'parent_sex': parent_sex,
-        'parent_address': parent_address,
-        'parent_phone': parent_phone,
-        'child_name': child_name,
-        'child_dob': child_dob,
-        'child_gender': child_gender,
-        'child_nhs': child_nhs,
-        'preferences': preferences
-    }
-
-
 @login_required
 @user_passes_test(is_admin)
 def confirm_manual_application(request):
-    child_data = request.session.get('child_data')
-    parent_data = request.session.get('parent_data')
-    preferences = request.session.get('preferences')
-    child_id = request.session.get('child_id')
+    # Extract data from session
+    extracted_data = request.session.get('extracted_data')
 
-    if request.method == 'POST':
-        # Save parent, child, and application data to the database
-        parent = CustomUser.objects.create(
-            email=parent_data['email'],
-            title=parent_data['title'],
-            forename=parent_data['forename'],
-            surname=parent_data['surname'],
-            sex=parent_data['sex'],
-            address=parent_data['address'],
-            phone=parent_data['phone'],
-            username=f"{parent_data['forename']}_{parent_data['surname']}_{child_id}",
-            is_parent=True
-        )
-        child = Child.objects.create(
-            id=child_id,
-            parent=parent,
-            name=child_data['name'],
-            dob=child_data['dob'],
-            gender=child_data['gender'],
-            nhs_number=child_data['nhs_number']
-        )
-        all_preferences = []
-        for index, preference in enumerate(preferences):
-            school_name = preference['school_name']
-            sibling_name = preference['sibling_name']
-            sibling_dob = preference['sibling_dob']
-            sibling_year_group = preference['sibling_year_group']
+    if not extracted_data:
+        return redirect('add_manual_application')
 
-            school = get_object_or_404(School, name=school_name)
-            siblings = []
-            if sibling_name and sibling_dob and sibling_year_group:
-                siblings.append({
-                    'name': sibling_name,
-                    'dob': sibling_dob,
-                    'year_group': sibling_year_group
-                })
+    child_data = {
+        'name': extracted_data['child_name'],
+        'dob': extracted_data['child_dob'],
+        'gender': extracted_data['child_gender'],
+        'nhs_number': extracted_data['child_nhs'],
+    }
 
-            all_preferences.append({
-                'school': {
-                    'name': school.name,
-                    'address': school.address,
-                    'latitude': school.latitude,
-                    'longitude': school.longitude,
-                    'distance': school.distance,
-                    'phone': school.phone,
-                    'website': school.website,
-                    'email': school.email,
-                },
-                'preference': index + 1,
-                'siblings': siblings
-            })
+    parent_data = {
+        'email': extracted_data['parent_email'],
+        'title': extracted_data['parent_title'],
+        'forename': extracted_data['parent_forename'],
+        'surname': extracted_data['parent_surname'],
+        'sex': extracted_data['parent_sex'],
+        'address': extracted_data['parent_address'],
+        'phone': extracted_data['parent_phone'],
+    }
 
-        Application.objects.create(
-            child=child,
-            preferences=all_preferences
-        )
+    preferences = extracted_data['preferences']
 
-        return redirect('admin_dashboard')
+    # Store child_data, parent_data, and preferences in session to access later
+    request.session['child_data'] = child_data
+    request.session['parent_data'] = parent_data
+    request.session['preferences'] = preferences
+    request.session['child_id'] = generate_unique_child_id()
 
     return render(request, 'admin/confirm_manual_application.html', {
         'child_data': child_data,

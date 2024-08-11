@@ -6,52 +6,48 @@
 {% endblock %}
 {% block content %}
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-  <h2>Add Manual Application</h2>
+<h2>Add Manual Application</h2>
 
-  <form id="manualApplicationForm" method="post" enctype="multipart/form-data">
+<form id="manualApplicationForm" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary">Upload and Extract</button>
-  </form>
+</form>
 
-  <!-- Loading Screen -->
-  <div id="loadingScreen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); z-index: 1000; text-align: center; padding-top: 20%;">
+<!-- Loading Screen -->
+<div id="loadingScreen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); z-index: 1000; text-align: center; padding-top: 20%;">
     <div class="spinner-border" role="status">
-      <span class="sr-only">Processing...</span>
+        <span class="sr-only">Processing...</span>
     </div>
     <p>Processing... Please wait.</p>
-  </div>
+</div>
 
-  <!-- Modal -->
-  <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-          <div class="modal-content">
-              <div class="modal-header">
-                  <h5 class="modal-title" id="confirmModalLabel">Confirm Details</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
-                  </button>
-              </div>
-              <div class="modal-body">
-                  <!-- Insert modal content here -->
-              </div>
-              <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                  <button type="button" class="btn btn-primary" id="confirmSubmit">Confirm and Submit</button>
-              </div>
-          </div>
-      </div>
-  </div>
+<!-- Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Modal content will be populated here by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="confirmSubmit">Confirm and Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-{% endblock %}
-
-{% block scripts %}
 <script>
-  document.getElementById('manualApplicationForm').addEventListener('submit', function(event) {
+document.getElementById('manualApplicationForm').addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent the default form submission
 
     // Show the loading screen
@@ -59,17 +55,51 @@
 
     // Simulate a delay (5 seconds) for the loading screen
     setTimeout(function() {
-      // Hide the loading screen
-      document.getElementById('loadingScreen').style.display = 'none';
+        // Hide the loading screen
+        document.getElementById('loadingScreen').style.display = 'none';
 
-      // Show the modal with extracted details
-      $('#confirmModal').modal('show');
+        // Populate the modal with extracted data
+        const extractedData = {{ extracted_data|safe }};
+        let modalContent = '';
+
+        if (extractedData) {
+            modalContent += '<h3>Parent Details</h3>';
+            modalContent += '<p>Email: ' + extractedData.parent_email + '</p>';
+            modalContent += '<p>Title: ' + extractedData.parent_title + '</p>';
+            modalContent += '<p>Forename: ' + extractedData.parent_forename + '</p>';
+            modalContent += '<p>Surname: ' + extractedData.parent_surname + '</p>';
+            modalContent += '<p>Sex: ' + extractedData.parent_sex + '</p>';
+            modalContent += '<p>Address: ' + extractedData.parent_address + '</p>';
+            modalContent += '<p>Phone Number: ' + extractedData.parent_phone + '</p>';
+
+            modalContent += '<h3>Child Details</h3>';
+            modalContent += '<p>Name: ' + extractedData.child_name + '</p>';
+            modalContent += '<p>Date of Birth: ' + extractedData.child_dob + '</p>';
+            modalContent += '<p>Gender: ' + extractedData.child_gender + '</p>';
+            modalContent += '<p>NHS Number: ' + extractedData.child_nhs + '</p>';
+
+            modalContent += '<h3>Preferences</h3>';
+            extractedData.preferences.forEach(function(preference, index) {
+                modalContent += '<p>Preference ' + (index + 1) + ':</p>';
+                modalContent += '<p>School Name: ' + preference.school_name + '</p>';
+                modalContent += '<p>Sibling Name: ' + preference.sibling_name + '</p>';
+                modalContent += '<p>Sibling Date of Birth: ' + preference.sibling_dob + '</p>';
+                modalContent += '<p>Sibling Year Group: ' + preference.sibling_year_group + '</p>';
+            });
+        } else {
+            modalContent = '<p>No data extracted.</p>';
+        }
+
+        document.querySelector('#confirmModal .modal-body').innerHTML = modalContent;
+
+        // Show the modal with extracted details
+        $('#confirmModal').modal('show');
     }, 5000); // 5000 milliseconds = 5 seconds
-  });
+});
 
-  document.getElementById('confirmSubmit').addEventListener('click', function () {
-      // Submit the form when the Confirm and Submit button is clicked
-      document.getElementById('manualApplicationForm').submit();
-  });
+document.getElementById('confirmSubmit').addEventListener('click', function () {
+    // Submit the form when the Confirm and Submit button is clicked
+    document.getElementById('manualApplicationForm').submit();
+});
 </script>
 {% endblock %}
