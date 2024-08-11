@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import CustomUserCreationForm, ChildForm, SchoolForm, ManualApplicationForm
 from .models import Child, Application, School, CustomUser, Notification
-from .utils import fetch_school_details
+from .utils import fetch_school_details, extract_text_from_pdf
 from datetime import date
 from django.urls import reverse
 import json
@@ -617,44 +617,28 @@ def manage_applications(request):
 @login_required
 @user_passes_test(is_admin)
 def add_manual_application(request):
+    extracted_data = None
+
     if request.method == 'POST':
         form = ManualApplicationForm(request.POST, request.FILES)
         if form.is_valid():
-            file = request.FILES['file']
-            text = ocr_from_image(file)
+            file = form.cleaned_data['file']
+            text = extract_text_from_pdf(file)
+            extracted_data = extract_details_from_text(text)
+            print(extracted_data)
 
-            extracted_data = parse_application_text(text)
-            child_id = generate_unique_child_id()
+            # Store the extracted data in the session for further confirmation
+            request.session['extracted_data'] = extracted_data
 
-            child_data = {
-                'name': extracted_data['child_name'],
-                'dob': extracted_data['child_dob'],
-                'gender': extracted_data['child_gender'],
-                'nhs_number': extracted_data['child_nhs']
-            }
+            return redirect('confirm_manual_application')
 
-            parent_data = {
-                'email': extracted_data['parent_email'],
-                'title': extracted_data['parent_title'],
-                'forename': extracted_data['parent_forename'],
-                'surname': extracted_data['parent_surname'],
-                'sex': extracted_data['parent_sex'],
-                'address': extracted_data['parent_address'],
-                'phone': extracted_data['parent_phone']
-            }
-
-            preferences = extracted_data['preferences']
-
-            request.session['child_data'] = child_data
-            request.session['parent_data'] = parent_data
-            request.session['preferences'] = preferences
-            request.session['child_id'] = child_id
-
-            return redirect('admin/confirm_manual_application')
     else:
         form = ManualApplicationForm()
-    return render(request, 'admin/add_manual_application.html', {'form': form})
 
+    return render(request, 'admin/add_manual_application.html', {
+        'form': form,
+        'extracted_data': extracted_data
+    })
 
 def generate_unique_child_id():
     last_child = Child.objects.order_by('id').last()

@@ -24,11 +24,8 @@ class SchoolForm(forms.ModelForm):
         fields = ['name', 'address', 'here_place_id', 'latitude', 'longitude', 'phone', 'website', 'email']
 
 
-class ManualApplicationForm(forms.ModelForm):
-    child_id = forms.IntegerField()
-    file = forms.FileField(required=False)  # Add this field for file upload
-
-    class Meta:
-        model = Application
-        fields = ['preferences', 'child_id', 'file']
-
+class ManualApplicationForm(forms.Form):
+    file = forms.FileField(
+        label='Upload a file (PDF or Image)',
+        help_text='Supported formats: .pdf, .jpg, .jpeg, .png'
+    )
